@@ -547,7 +547,7 @@
 </tr>
 <tr>
 <td><strong>TERMINATED</strong></td>
-<td align="left">terminated()勾子方法执行完毕</td>
+<td align="left">terminated()方法执行完毕</td>
 </tr>
 </tbody></table>
 <p>改变线程池状态的方法：</p>
@@ -557,8 +557,71 @@
 <p>注：SHUTDOWN 状态 和 STOP 状态 先会转变为 TIDYING 状态，最终都会变为 TERMINATED</p>
 </blockquote>
 <p>获取线程池状态的方法：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">executor.isTerminating() <span class="comment">// </span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">fixedExecutor.isShutdown <span class="comment">// 检查执行器服务是否已经调用了 shutdown() 或者 shutdownNow() 方法。调用这两个方法之后，执行器服务会停止接受新任务，但已经提交的任务会继续执行。</span></span><br><span class="line">executor.isTerminated <span class="comment">// 检查执行器服务是否已经完全终止。只有在调用 shutdown() 或者 shutdownNow() 方法，并且所有已提交的任务都执行完毕之后，该方法才会返回 true。</span></span><br></pre></td></tr></table></figure>
 
+<h3 id="3-2-线程池各参数的含义"><a href="#3-2-线程池各参数的含义" class="headerlink" title="3.2 线程池各参数的含义"></a>3.2 线程池各参数的含义</h3><h4 id="定义线程池"><a href="#定义线程池" class="headerlink" title="定义线程池"></a>定义线程池</h4><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> executor = ThreadPoolExecutor(</span><br><span class="line">      <span class="comment">/**</span></span><br><span class="line"><span class="comment">       * corePoolSize: 核心线程数</span></span><br><span class="line"><span class="comment">       * 空闲不会被回收，除非设置了:executor.allowCoreThreadTimeOut(true)</span></span><br><span class="line"><span class="comment">       */</span></span><br><span class="line">      <span class="number">2</span>,</span><br><span class="line">      <span class="comment">/**</span></span><br><span class="line"><span class="comment">       * maximumPoolSize: 最大线程数</span></span><br><span class="line"><span class="comment">       * 创建的线程总数不允许超过maximumPoolSize</span></span><br><span class="line"><span class="comment">       */</span></span><br><span class="line">      <span class="number">3</span>,</span><br><span class="line">      <span class="comment">/**</span></span><br><span class="line"><span class="comment">       * keepAliveTime: 非核心线程允许的空闲时间，超过就会被线程池回收</span></span><br><span class="line"><span class="comment">       * 但如果设置了allowCoreThreadTimeOut(true)，核心线程也会被回收</span></span><br><span class="line"><span class="comment">       */</span></span><br><span class="line">      <span class="number">60</span>,</span><br><span class="line">      <span class="comment">/**</span></span><br><span class="line"><span class="comment">       * unit: 时间计数单位</span></span><br><span class="line"><span class="comment">       */</span></span><br><span class="line">      TimeUnit.SECONDS,</span><br><span class="line"></span><br><span class="line">       * workQueue: 任务队列</span><br><span class="line">       * 当创建的线程超过核心线程数且没有线程空闲时，则会将任务放在队列中</span><br><span class="line">       */</span><br><span class="line">      ArrayBlockingQueue(<span class="number">1</span>),</span><br><span class="line">      <span class="comment">/**</span></span><br><span class="line"><span class="comment">       * handler: 任务超过线程池负荷的处理手段</span></span><br><span class="line"><span class="comment">       * 当池子中创建的线程数超过maximumPoolSize &amp; workQueue已满的情况下，就会启用handler机制</span></span><br><span class="line"><span class="comment">       */</span></span><br><span class="line">      DiscardOldestPolicy()</span><br><span class="line">  )</span><br></pre></td></tr></table></figure>
+
+<h4 id="线程池的主要处理流程"><a href="#线程池的主要处理流程" class="headerlink" title="线程池的主要处理流程"></a>线程池的主要处理流程</h4><p><img src="/Users/penghc/Documents/pictures/%E7%BA%BF%E7%A8%8B%E6%B1%A0ThreadPoolExecutor%E8%AF%A6%E8%A7%A3/image-20250420230735361.png" class="lazyload placeholder" data-srcset="/Users/penghc/Documents/pictures/%E7%BA%BF%E7%A8%8B%E6%B1%A0ThreadPoolExecutor%E8%AF%A6%E8%A7%A3/image-20250420230735361.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="线程池的主要处理流程"></p>
+<p>当调用线程池execute() 方法添加一个任务时，线程池会做如下判断：</p>
+<ul>
+<li>如果有空闲线程，则直接执行该任务；</li>
+<li>如果没有空闲线程，且当前运行的线程数少于corePoolSize，则创建新的线程执行该任务；</li>
+<li>如果没有空闲线程，且当前的线程数等于corePoolSize，同时阻塞队列未满，则将任务入队列，而不添加新的线程；</li>
+<li>如果没有空闲线程，且阻塞队列已满，同时池中的线程数小于maximumPoolSize ，则创建新的线程执行任务；</li>
+<li>如果没有空闲线程，且阻塞队列已满，同时池中的线程数等于maximumPoolSize ，则根据构造函数中的 handler 指定的策略来拒绝新的任务。</li>
+</ul>
+<h4 id="3-3-重要参数解析"><a href="#3-3-重要参数解析" class="headerlink" title="3.3 重要参数解析"></a>3.3 重要参数解析</h4><h5 id="KeepAliveTime"><a href="#KeepAliveTime" class="headerlink" title="KeepAliveTime"></a>KeepAliveTime</h5><ul>
+<li>keepAliveTime ：表示空闲线程的存活时间</li>
+<li>TimeUnit unit ：表示keepAliveTime的单位</li>
+</ul>
+<p>当一个线程无事可做，超过一定的时间（keepAliveTime）时，线程池会判断，如果当前运行的线程数大于 corePoolSize，那么这个线程就被停掉。所以线程池的所有任务完成后，它最终会收缩到 corePoolSize 的大小。</p>
+<blockquote>
+<p>注：如果线程池设置了allowCoreThreadTimeout参数为true（默认false），那么当空闲线程超过keepaliveTime后直接停掉。（不会判断线程数是否大于corePoolSize）即：最终线程数会变为0。</p>
+</blockquote>
+<h5 id="workQueue-任务队列"><a href="#workQueue-任务队列" class="headerlink" title="workQueue 任务队列"></a>workQueue 任务队列</h5><p>决定了缓存任务的排队策略</p>
+<p>ThreadPoolExecutor线程池推荐了三种等待队列，它们是：<strong>SynchronousQueue 、LinkedBlockingQueue和 ArrayBlockingQueue</strong>。</p>
+<p>1）有界队列：</p>
+<ul>
+<li>SynchronousQueue ：一个不存储元素的阻塞队列，每个插入操作必须等到另一个线程调用移除操作，否则插入操作一直处于 阻塞状态，吞吐量通常要高于LinkedBlockingQueue，静态工厂方法Executors.newCachedThreadPool 使用了这个队列。</li>
+<li>ArrayBlockingQueue：一个由数组支持的有界阻塞队列。此队列按 FIFO（先进先出）原则对元素进行排序。一旦创建了这样的缓存区，就不能再增加其容量。试图向已满队列中放入元素会导致操作受阻塞；试图从空队列中提取元素将导致类似阻塞。</li>
+</ul>
+<p>2）无界队列：</p>
+<ul>
+<li>LinkedBlockingQueue：基于链表结构的无界阻塞队列，它可以指定容量也可以不指定容量（实际上任何无限容量的队列&#x2F;栈都是有容量的，这个容量就是Integer.MAX_VALUE）</li>
+<li>PriorityBlockingQueue：是一个按照优先级进行内部元素排序的无界阻塞队列。队列中的元素必须实现 Comparable 接口，这样才能通过实现compareTo()方法进行排序。优先级最高的元素将始终排在队列的头部；PriorityBlockingQueue 不会保证优先级一样的元素的排序。</li>
+</ul>
+<blockquote>
+<p>注意：keepAliveTime和maximumPoolSize及BlockingQueue的类型均有关系。如果BlockingQueue是无界的，那么永远不会触发maximumPoolSize，自然keepAliveTime也就没有了意义。</p>
+</blockquote>
+<h5 id="threadFactory"><a href="#threadFactory" class="headerlink" title="threadFactory"></a>threadFactory</h5><p>指定创建线程的工厂。（可以不指定）</p>
+<p>如果不指定线程工厂时，ThreadPoolExecutor 会使用ThreadPoolExecutor.defaultThreadFactory 创建线程。默认工厂创建的线程：同属于相同的线程组，具有同为 Thread.NORM_PRIORITY 的优先级，以及名为 “pool-XXX-thread-” 的线程名（XXX为创建线程时顺序序号），且创建的线程都是非守护进程。</p>
+<h5 id="handler-拒绝策略："><a href="#handler-拒绝策略：" class="headerlink" title="handler 拒绝策略："></a>handler 拒绝策略：</h5><p>handler ：表示当 workQueue 已满，且池中的线程数达到 maximumPoolSize 时，线程池拒绝添加新任务时采取的策略。（可以不指定）</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>解析</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ThreadPoolExecutor.AbortPolicy()</td>
+<td>抛出 RejectedExecutionException 异常。默认策略</td>
+</tr>
+<tr>
+<td>ThreadPoolExecutor.CallerRunsPolicy()</td>
+<td>由向线程池提交任务的线程来执行该任务</td>
+</tr>
+<tr>
+<td>ThreadPoolExecutor.DiscardPolicy()</td>
+<td>抛弃当前的任务</td>
+</tr>
+<tr>
+<td>ThreadPoolExecutor.DiscardOldestPolicy()</td>
+<td>抛弃最旧的任务（最先提交而没有得到执行的任务）</td>
+</tr>
+</tbody></table>
+<p>最科学的的还是 AbortPolicy 提供的处理方式：抛出异常，由开发人员进行处理。</p>
+<p>参考来源：<a target="_blank" rel="noopener" href="https://blog.csdn.net/liuxiao723846/article/details/108026782">博客_ThreadPoolExecutor详解</a></p>
 
       </div>
       <div class="post-tags-categories">
@@ -828,7 +891,7 @@
   <div class='content'>
     <div class="toc-main">
       <div class="toc-content">
-        <!-- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0ThreadPoolExecutor%E8%AF%A6%E8%A7%A3"><span class="toc-text">线程池ThreadPoolExecutor详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF%E7%BA%BF%E7%A8%8B"><span class="toc-text">一、什么是线程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-text">二、为什么需要线程池</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81ThreadPoolExecutor"><span class="toc-text">三、ThreadPoolExecutor</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E7%8A%B6%E6%80%81"><span class="toc-text">3.1 线程池的状态</span></a></li></ol></li></ol></li></ol> -->
+        <!-- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0ThreadPoolExecutor%E8%AF%A6%E8%A7%A3"><span class="toc-text">线程池ThreadPoolExecutor详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF%E7%BA%BF%E7%A8%8B"><span class="toc-text">一、什么是线程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-text">二、为什么需要线程池</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81ThreadPoolExecutor"><span class="toc-text">三、ThreadPoolExecutor</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E7%8A%B6%E6%80%81"><span class="toc-text">3.1 线程池的状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%90%84%E5%8F%82%E6%95%B0%E7%9A%84%E5%90%AB%E4%B9%89"><span class="toc-text">3.2 线程池各参数的含义</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-text">定义线程池</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E4%B8%BB%E8%A6%81%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B"><span class="toc-text">线程池的主要处理流程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-3-%E9%87%8D%E8%A6%81%E5%8F%82%E6%95%B0%E8%A7%A3%E6%9E%90"><span class="toc-text">3.3 重要参数解析</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#KeepAliveTime"><span class="toc-text">KeepAliveTime</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#workQueue-%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97"><span class="toc-text">workQueue 任务队列</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#threadFactory"><span class="toc-text">threadFactory</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#handler-%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%EF%BC%9A"><span class="toc-text">handler 拒绝策略：</span></a></li></ol></li></ol></li></ol></li></ol></li></ol> -->
         <div class="toc"></div>
       </div>
     </div>
