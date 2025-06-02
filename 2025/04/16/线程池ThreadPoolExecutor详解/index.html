@@ -595,7 +595,7 @@
 </blockquote>
 <h5 id="threadFactory"><a href="#threadFactory" class="headerlink" title="threadFactory"></a>threadFactory</h5><p>指定创建线程的工厂。（可以不指定）</p>
 <p>如果不指定线程工厂时，ThreadPoolExecutor 会使用ThreadPoolExecutor.defaultThreadFactory 创建线程。默认工厂创建的线程：同属于相同的线程组，具有同为 Thread.NORM_PRIORITY 的优先级，以及名为 “pool-XXX-thread-” 的线程名（XXX为创建线程时顺序序号），且创建的线程都是非守护进程。</p>
-<h5 id="handler-拒绝策略："><a href="#handler-拒绝策略：" class="headerlink" title="handler 拒绝策略："></a>handler 拒绝策略：</h5><p>handler ：表示当 workQueue 已满，且池中的线程数达到 maximumPoolSize 时，线程池拒绝添加新任务时采取的策略。（可以不指定）</p>
+<h5 id="handler-拒绝策略"><a href="#handler-拒绝策略" class="headerlink" title="handler 拒绝策略"></a>handler 拒绝策略</h5><p>handler ：表示当 workQueue 已满，且池中的线程数达到 maximumPoolSize 时，线程池拒绝添加新任务时采取的策略。（可以不指定）</p>
 <table>
 <thead>
 <tr>
@@ -652,6 +652,26 @@
 <div class="post-nav">
 
 
+
+  
+  <div class="post-nav-prev post-nav-item">
+    <div class="post-nav-img" style="background-size: cover; 
+      background-position: center center;">
+      <img class="lazyload lazyload placeholder" src="https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp" class="lazyload placeholder" data-srcset="https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+    </div>
+    <a href="/2025/06/02/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/" class="post-nav-link">
+      <div class="title">
+        <i class="fas fa-angle-left"></i> Prev:
+        <div class="title-text">Android事件分发机制详解(一)</div>
+      </div>
+      
+      <!-- <div class="content">
+        Android事件分发机制详解(一)
+目录
+1. 基础认知1.1 事件分发的”事件“是指什么？答：点击事件（Touch事
+      </div> -->
+    </a>
+  </div>
 
 
 
@@ -891,7 +911,7 @@
   <div class='content'>
     <div class="toc-main">
       <div class="toc-content">
-        <!-- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0ThreadPoolExecutor%E8%AF%A6%E8%A7%A3"><span class="toc-text">线程池ThreadPoolExecutor详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF%E7%BA%BF%E7%A8%8B"><span class="toc-text">一、什么是线程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-text">二、为什么需要线程池</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81ThreadPoolExecutor"><span class="toc-text">三、ThreadPoolExecutor</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E7%8A%B6%E6%80%81"><span class="toc-text">3.1 线程池的状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%90%84%E5%8F%82%E6%95%B0%E7%9A%84%E5%90%AB%E4%B9%89"><span class="toc-text">3.2 线程池各参数的含义</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-text">定义线程池</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E4%B8%BB%E8%A6%81%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B"><span class="toc-text">线程池的主要处理流程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-3-%E9%87%8D%E8%A6%81%E5%8F%82%E6%95%B0%E8%A7%A3%E6%9E%90"><span class="toc-text">3.3 重要参数解析</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#KeepAliveTime"><span class="toc-text">KeepAliveTime</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#workQueue-%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97"><span class="toc-text">workQueue 任务队列</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#threadFactory"><span class="toc-text">threadFactory</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#handler-%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%EF%BC%9A"><span class="toc-text">handler 拒绝策略：</span></a></li></ol></li></ol></li></ol></li></ol></li></ol> -->
+        <!-- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0ThreadPoolExecutor%E8%AF%A6%E8%A7%A3"><span class="toc-text">线程池ThreadPoolExecutor详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF%E7%BA%BF%E7%A8%8B"><span class="toc-text">一、什么是线程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-text">二、为什么需要线程池</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81ThreadPoolExecutor"><span class="toc-text">三、ThreadPoolExecutor</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E7%8A%B6%E6%80%81"><span class="toc-text">3.1 线程池的状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%90%84%E5%8F%82%E6%95%B0%E7%9A%84%E5%90%AB%E4%B9%89"><span class="toc-text">3.2 线程池各参数的含义</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-text">定义线程池</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E4%B8%BB%E8%A6%81%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B"><span class="toc-text">线程池的主要处理流程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-3-%E9%87%8D%E8%A6%81%E5%8F%82%E6%95%B0%E8%A7%A3%E6%9E%90"><span class="toc-text">3.3 重要参数解析</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#KeepAliveTime"><span class="toc-text">KeepAliveTime</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#workQueue-%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97"><span class="toc-text">workQueue 任务队列</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#threadFactory"><span class="toc-text">threadFactory</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#handler-%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5"><span class="toc-text">handler 拒绝策略</span></a></li></ol></li></ol></li></ol></li></ol></li></ol> -->
         <div class="toc"></div>
       </div>
     </div>
@@ -917,6 +937,27 @@
       <!-- hash算法 -->
       
       <div class="aside-list">
+        
+          <div class="aside-list-item">
+            
+            
+            
+
+            <div class="post-img-box">
+              <a href="/2025/06/02/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/" class="post-img " style="background-size: cover; 
+                background-position: center center;">
+                <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp" class="lazyload placeholder" data-srcset="https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+              </a>
+            </div>
+            <div class="post-date-title">
+              <div>
+                
+                  <span class="post-date">06-02</span>
+                
+              </div>
+              <a class="post-title" href="/2025/06/02/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/">Android事件分发机制详解(一)</a>
+            </div>
+          </div>
         
           <div class="aside-list-item">
             
