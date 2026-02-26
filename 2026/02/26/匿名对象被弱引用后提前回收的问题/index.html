@@ -11,7 +11,7 @@
   <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-  <title>Hello World | Penghc_Blog</title>
+  <title>匿名对象被弱引用后提前回收的问题 | Penghc_Blog</title>
 
   <link rel="icon" type="image/x-icon, image/vnd.microsoft.icon" href="/favicon.ico">
   <link rel="stylesheet" href="https://at.alicdn.com/t/font_1911880_c1nvbyezg17.css">
@@ -412,21 +412,21 @@
 
 
 <div class="post-detail-header" id="thumbnail_canvas" style="background-repeat: no-repeat; background-size: cover; 
-  background-position: center center;position: relative;background-image:url('https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp')">
+  background-position: center center;position: relative;background-image:url('https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp')">
   <div class="post-detail-header-mask"></div>
   <canvas id="header_canvas"style="position:absolute;bottom:0;pointer-events:none;"></canvas>
   
   <div class="post-detail-header_info-box">
     <div class="title-box">
       <span class="title">
-        Hello World
+        匿名对象被弱引用后提前回收的问题
       </span>
     </div>
     
     
       
         <span class="post-detail-header_date">
-          <i class="fas fa-calendar"></i> Published in：2025-04-14 |
+          <i class="fas fa-calendar"></i> Published in：2026-02-26 |
         </span>
       
 
@@ -450,22 +450,45 @@
   <div class="main-content">
     <article class="post post-detail">
       <div class="post-content">
-        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+        <h1 id="匿名对象被弱引用后提前回收的问题"><a href="#匿名对象被弱引用后提前回收的问题" class="headerlink" title="匿名对象被弱引用后提前回收的问题"></a>匿名对象被弱引用后提前回收的问题</h1><ul>
+<li>背景：做语音搜索项目时，发现一个bug，第一次进入语音页，网络断开和连接，都会走正常的回调，显示不同的网络连接状态。但在此之后，网络异常状态似乎失效了（不能正常显示网络异常的提示）<br>我的代码如下（大概意思）：</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">object</span> Utils &#123;</span><br><span class="line">    <span class="comment">// 弱引用持有监听器</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> errorStatusListenerRef: WeakReference&lt;ErrorStatusListener&gt;? = <span class="literal">null</span></span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 间接获取监听器（通过弱引用的get()方法）</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> errorStatusListener: ErrorStatusListener?</span><br><span class="line">        <span class="keyword">get</span>() = errorStatusListenerRef?.<span class="keyword">get</span>()</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 监听器接口</span></span><br><span class="line">    <span class="keyword">interface</span> <span class="title class_">ErrorStatusListener</span> &#123;</span><br><span class="line">        <span class="function"><span class="keyword">fun</span> <span class="title">onNetworkConnected</span><span class="params">()</span></span></span><br><span class="line">        <span class="function"><span class="keyword">fun</span> <span class="title">onNetworkDisconnected</span><span class="params">()</span></span></span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 设置监听器（包装为弱引用）</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">setErrorStatusListener</span><span class="params">(listener: <span class="type">ErrorStatusListener</span>?)</span></span> &#123;</span><br><span class="line">        errorStatusListenerRef = <span class="keyword">if</span> (listener != <span class="literal">null</span>) WeakReference(listener) <span class="keyword">else</span> <span class="literal">null</span></span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 打印监听器状态并尝试调用方法</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">printErrorStatus</span><span class="params">(tag: <span class="type">String</span>)</span></span> &#123;</span><br><span class="line">        println(<span class="string">&quot;[<span class="variable">$tag</span>] errorStatusListenerRef: <span class="variable">$errorStatusListenerRef</span>&quot;</span>)</span><br><span class="line">        println(<span class="string">&quot;[<span class="variable">$tag</span>] errorStatusListener: <span class="variable">$errorStatusListener</span>&quot;</span>)</span><br><span class="line">        <span class="comment">// 尝试调用监听器方法（若不为null则执行）</span></span><br><span class="line">        errorStatusListener?.onNetworkDisconnected()</span><br><span class="line">        errorStatusListener?.onNetworkConnected()</span><br><span class="line">        println(<span class="string">&quot;----------------------------------------&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这里使用WeakReference主要是为了防止内存泄漏，因为这个类是一个object，作用域是全局，当它的变量持有Activity实例时，如果该实例需要被销毁，但所持有的变量又没有设置WeakReference，就不会被GC回收从而导致内存泄漏。</p>
+</blockquote>
+<p>代码还是很简单的，本质就是设置了个弱引用监听器，调用了回调方法，具体的回调实现可以由调用Utils.setErrorStatusListener方来实现。但断点却发现，除第一次外，printErrorStatus方法中的errorStatusListener都为null，这里应该就是不生效的根本原因了。<br>来看一下调用方是怎么处理的：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// 步骤1：设置匿名对象作为监听器（仅被弱引用持有，无强引用）</span></span><br><span class="line">    Utils.setErrorStatusListener(<span class="keyword">object</span> : Utils.ErrorStatusListener &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onNetworkConnected</span><span class="params">()</span></span> &#123;</span><br><span class="line">            println(<span class="string">&quot;匿名对象：网络已连接&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onNetworkDisconnected</span><span class="params">()</span></span> &#123;</span><br><span class="line">            println(<span class="string">&quot;匿名对象：网络已断开&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;)</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 步骤2：第一次打印（此时匿名对象未被GC，弱引用可获取）</span></span><br><span class="line">    Utils.printErrorStatus(<span class="string">&quot;GC前&quot;</span>)</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 步骤3：触发GC</span></span><br><span class="line">    println(<span class="string">&quot;触发GC...&quot;</span>)</span><br><span class="line">    System.gc() <span class="comment">// 建议GC（JVM不保证立即执行，仅为提示）</span></span><br><span class="line">    Thread.sleep(<span class="number">100</span>) <span class="comment">// 等待GC执行（增加回收可能性）</span></span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 步骤4：第二次打印（此时匿名对象已被GC回收，弱引用get()返回null）</span></span><br><span class="line">    Utils.printErrorStatus(<span class="string">&quot;GC后&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>打印的结果如下：<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/c411c2d0897b4c87954dca3a0667bcbf.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/c411c2d0897b4c87954dca3a0667bcbf.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>可以清晰的看到，errorStatusListener被GC回收调了导致它为null。从这里其实我们可以得出结论：</p>
+<blockquote>
+<p>仅被弱引用持有的对象会被 GC 回收，导致弱引用的get()方法返回null</p>
+</blockquote>
+<p>匿名对象的生命周期：</p>
+<blockquote>
+<p>匿名对象的生命周期完全依赖于 “是否有强引用持有它”：</p>
+<ol>
+<li>创建时：匿名对象被作为参数传递给 setErrorStatusListener 方法。</li>
+<li>存储时：setErrorStatusListener 将其包装到 WeakReference 中（errorStatusListenerRef &#x3D; WeakReference(匿名对象)）。<br>注意：WeakReference 本身不会持有强引用，它仅 “弱引用” 这个匿名对象，不影响 GC 回收。</li>
+<li>函数结束后：printErrorStatus() 函数执行完毕，没有任何变量（如类的属性、局部变量）持有这个匿名对象的强引用（强引用是指直接用 val&#x2F;var 声明的引用，如 val listener &#x3D; object : …）。<br>此时，匿名对象唯一的引用是 WeakReference，而弱引用无法阻止 GC 回收。</li>
+<li>GC 触发时：当 GC 运行时，会发现这个匿名对象没有任何强引用，就会将其回收。此时 errorStatusListenerRef.get() 就会返回 null。</li>
+</ol>
+</blockquote>
+<ul>
+<li>怎么解决这个问题呢？很简单，就是让强引用（val&#x2F;var）去持有这个“匿名对象”，然后将这个强引用赋值给errorStatusListenerRef，让它持有即可，具体代码如下：</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> statusListener = <span class="keyword">object</span> : Utils.ErrorStatusListener &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onNetworkConnected</span><span class="params">()</span></span> &#123;</span><br><span class="line">            println(<span class="string">&quot;匿名对象：网络已连接&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onNetworkDisconnected</span><span class="params">()</span></span> &#123;</span><br><span class="line">            println(<span class="string">&quot;匿名对象：网络已断开&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 步骤1：设置匿名对象作为监听器（仅被弱引用持有，无强引用）</span></span><br><span class="line">    Utils.setErrorStatusListener(statusListener)</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 步骤2：第一次打印（此时匿名对象未被GC，弱引用可获取）</span></span><br><span class="line">    Utils.printErrorStatus(<span class="string">&quot;GC前&quot;</span>)</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 步骤3：触发GC</span></span><br><span class="line">    println(<span class="string">&quot;触发GC...&quot;</span>)</span><br><span class="line">    System.gc() <span class="comment">// 建议GC（JVM不保证立即执行，仅为提示）</span></span><br><span class="line">    Thread.sleep(<span class="number">100</span>) <span class="comment">// 等待GC执行（增加回收可能性）</span></span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 步骤4：第二次打印（由于statusListener是强引用，所以此时的GC不会对该变量进行回收，除非主动设置为null，然后进行释放）</span></span><br><span class="line">    Utils.printErrorStatus(<span class="string">&quot;GC后&quot;</span>)</span><br><span class="line"> </span><br><span class="line">    println(<span class="string">&quot;主动设置listener为null，再次释放&quot;</span>)</span><br><span class="line">    Utils.setErrorStatusListener((<span class="literal">null</span>))</span><br><span class="line">    System.gc() <span class="comment">// 建议GC（JVM不保证立即执行，仅为提示）</span></span><br><span class="line">    Thread.sleep(<span class="number">100</span>) <span class="comment">// 等待GC执行（增加回收可能性）</span></span><br><span class="line">    Utils.printErrorStatus(<span class="string">&quot;主动释放&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/9f4ff7f168da48b89cf1524fb271527e.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/9f4ff7f168da48b89cf1524fb271527e.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"></p>
 
       </div>
       <div class="post-tags-categories">
+        
+        <div class="tags">
+          
+            <a href="/tags/%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F/" class="">
+              内存泄漏
+            </a>
+          
+        </div>
         
       </div>
       
@@ -476,7 +499,7 @@
     </li>
     <li class="post-copyright-link">
     <strong>link:  </strong>
-    <a href="/2025/04/14/hello-world/" target="_blank" title="Hello World">http://example.com/2025/04/14/hello-world/</a>
+    <a href="/2026/02/26/匿名对象被弱引用后提前回收的问题/" target="_blank" title="匿名对象被弱引用后提前回收的问题">http://example.com/2026/02/26/匿名对象被弱引用后提前回收的问题/</a>
     </li>
     <li class="post-copyright-license">
       <strong>Copyright notice:   </strong>
@@ -498,23 +521,41 @@
   <div class="post-nav-prev post-nav-item">
     <div class="post-nav-img" style="background-size: cover; 
       background-position: center center;">
-      <img class="lazyload lazyload placeholder" src="https://pic2.zhimg.com/80/v2-29e78b52051ce542adf6d786d61fbd19_1440w.webp" class="lazyload placeholder" data-srcset="https://pic2.zhimg.com/80/v2-29e78b52051ce542adf6d786d61fbd19_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+      <img class="lazyload lazyload placeholder" src="https://pica.zhimg.com/80/v2-573ac3e25de03fad9c32add5a05e5cfc_1440w.webp" class="lazyload placeholder" data-srcset="https://pica.zhimg.com/80/v2-573ac3e25de03fad9c32add5a05e5cfc_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
     </div>
-    <a href="/2025/04/15/hexo%E6%A1%86%E6%9E%B6-github%E5%88%9B%E5%BB%BA%E5%B1%9E%E4%BA%8E%E8%87%AA%E5%B7%B1%E7%9A%84%E5%8D%9A%E5%AE%A2/" class="post-nav-link">
+    <a href="/2026/02/26/%E5%9B%A2%E9%98%9F%E5%8D%8F%E4%BD%9C%E4%B8%ADGit%20Commit%E5%BA%94%E8%AF%A5%E5%A6%82%E4%BD%95%E8%A7%84%E8%8C%83%E5%8C%96/" class="post-nav-link">
       <div class="title">
         <i class="fas fa-angle-left"></i> Prev:
-        <div class="title-text">hexo框架+github如何创建属于自己的博客</div>
+        <div class="title-text">团队协作中Git Commit应该如何规范化</div>
       </div>
       
       <!-- <div class="content">
-        hexo框架+github创建属于自己的博客一、环境准备
-安装 Node.js
-前往 Node.js 官网下载并安装最新
+        @[toc]
+一、背景
+Git每次提交代码都需要写commit message，否则就不允许提交。一般来说，commit
       </div> -->
     </a>
   </div>
 
 
+
+  
+  <div class="post-nav-next post-nav-item">
+    <div class="post-nav-img" style="background-size: cover; 
+      background-position: center center;">
+      <img class="lazyload lazyload placeholder" src="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" class="lazyload placeholder" data-srcset="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" src="" alt="">
+    </div>
+    <a href="/2026/02/26/Data-Class%E5%9C%A8%E5%BA%8F%E5%88%97%E5%8C%96%E5%92%8C%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E9%81%87%E5%88%B0%E7%9A%84%E2%80%9C%E5%9D%91%E2%80%9D/" class="post-nav-link">
+      <div class="title">
+        Next: <i class="fas fa-angle-right"></i>
+        <div class="title-text">Data Class在序列化和反序列化遇到的“坑”</div>
+      </div>
+      <!-- <div class="content">
+        Data Class在序列化和反序列化遇到的“坑”
+在 Kotlin 中，data class 是一种特殊的类，专为存储
+      </div> -->
+    </a>
+  </div>
 
 </div>
 
@@ -733,7 +774,7 @@
   <div class='content'>
     <div class="toc-main">
       <div class="toc-content">
-        <!-- <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Quick-Start"><span class="toc-text">Quick Start</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Create-a-new-post"><span class="toc-text">Create a new post</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Run-server"><span class="toc-text">Run server</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Generate-static-files"><span class="toc-text">Generate static files</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Deploy-to-remote-sites"><span class="toc-text">Deploy to remote sites</span></a></li></ol></li></ol> -->
+        <!-- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8C%BF%E5%90%8D%E5%AF%B9%E8%B1%A1%E8%A2%AB%E5%BC%B1%E5%BC%95%E7%94%A8%E5%90%8E%E6%8F%90%E5%89%8D%E5%9B%9E%E6%94%B6%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-text">匿名对象被弱引用后提前回收的问题</span></a></li></ol> -->
         <div class="toc"></div>
       </div>
     </div>

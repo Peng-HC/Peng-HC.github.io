@@ -11,7 +11,7 @@
   <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-  <title>Hello World | Penghc_Blog</title>
+  <title>团队协作中Git Commit应该如何规范化 | Penghc_Blog</title>
 
   <link rel="icon" type="image/x-icon, image/vnd.microsoft.icon" href="/favicon.ico">
   <link rel="stylesheet" href="https://at.alicdn.com/t/font_1911880_c1nvbyezg17.css">
@@ -412,21 +412,21 @@
 
 
 <div class="post-detail-header" id="thumbnail_canvas" style="background-repeat: no-repeat; background-size: cover; 
-  background-position: center center;position: relative;background-image:url('https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp')">
+  background-position: center center;position: relative;background-image:url('https://pica.zhimg.com/80/v2-573ac3e25de03fad9c32add5a05e5cfc_1440w.webp')">
   <div class="post-detail-header-mask"></div>
   <canvas id="header_canvas"style="position:absolute;bottom:0;pointer-events:none;"></canvas>
   
   <div class="post-detail-header_info-box">
     <div class="title-box">
       <span class="title">
-        Hello World
+        团队协作中Git Commit应该如何规范化
       </span>
     </div>
     
     
       
         <span class="post-detail-header_date">
-          <i class="fas fa-calendar"></i> Published in：2025-04-14 |
+          <i class="fas fa-calendar"></i> Published in：2026-02-26 |
         </span>
       
 
@@ -450,22 +450,176 @@
   <div class="main-content">
     <article class="post post-detail">
       <div class="post-content">
-        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+        <p>@[toc]</p>
+<h2 id="一、背景"><a href="#一、背景" class="headerlink" title="一、背景"></a>一、背景</h2><ul>
+<li>Git每次提交代码都需要写commit message，否则就不允许提交。一般来说，commit message应该清晰明了，说明本次提交的目的，具体做了什么操作……但是在日常开发中，大家的commit message千奇百怪，中英文混合使用、fix bug等各种笼统的message司空见怪，这就导致后续代码维护成本特别大，有时自己都不知道自己的fix修的是什么bug。</li>
+<li>而近期，我们团队内有好几个大需求都需要多个研发同学all in一个开发分支，但是在开发过程中我发现很多研发同学提交的commit信息“五花八门”，这就导致在定位问题时不知道对方或者自己的每笔提交是什么含义，无法快速定位问题。</li>
+<li>基于以上这些问题，我们希望通过某种方式来约束用户的git commit message，让规范更好的服务于质量，提高大家的研发效率。一旦约束了commit message，意味着我们将慎重的进行每一次提交，不能再一股脑的把各种各样的改动都放在一个git commit里面，这样一来整个代码改动的历史也将更加清晰。</li>
+</ul>
+<h2 id="二、一般的commit-message格式"><a href="#二、一般的commit-message格式" class="headerlink" title="二、一般的commit message格式"></a>二、一般的commit message格式</h2><h3 id="2-1-文字版"><a href="#2-1-文字版" class="headerlink" title="2.1 文字版"></a>2.1 文字版</h3><blockquote>
+<p>注：如果不想看长篇文字的，可以直接看下面的流程图</p>
+</blockquote>
+<p>对于一般的commit约束规范为：</p>
+<ol>
+<li>检查提交者的邮箱 (user.email) <ul>
+<li>它会读取你本地 Git 配置的 user.email。</li>
+<li>规则:<ul>
+<li>邮箱不能为空。</li>
+<li>邮箱必须以 @xxx(公司名后缀).com 或 @xxx.net 结尾。</li>
+</ul>
+</li>
+<li>如果不满足，提交会被阻止，并提示你如何通过 git config 命令设置正确的邮箱。</li>
+</ul>
+</li>
+<li>检查提交者的姓名 (user.name)<ul>
+<li>它会读取你本地 Git 配置的 user.name。</li>
+<li>规则：<ul>
+<li>姓名不能为空。</li>
+</ul>
+</li>
+<li>如果不满足，提交会被阻止，并建议你设置为中文名。</li>
+</ul>
+</li>
+<li>检查提交信息的编码<ul>
+<li>它会读取你写的提交信息文件。</li>
+<li>规则：<ul>
+<li>提交信息必须是 UTF-8 编码。</li>
+</ul>
+</li>
+<li>如果不满足，提交会被阻止。</li>
+</ul>
+</li>
+<li><strong>检查提交信息的格式 (核心功能)</strong><ul>
+<li>这是这个hook最重要的检查。</li>
+<li>规则: 提交信息的第一行必须以下列前缀之一开头：<ul>
+<li><strong>feat: (用于提交新功能)</strong></li>
+<li><strong>fix: (用于修复 bug)</strong></li>
+<li>docs: (用于修改文档)</li>
+<li>style: (用于代码格式调整，不影响功能)</li>
+<li>refactor: (用于重构代码)</li>
+<li>test: (用于增加或修改测试)</li>
+<li>chore: (用于构建过程或辅助工具的变动)</li>
+<li>例外情况: 它也允许以下 Git 自动生成的提交信息开头：<ul>
+<li><strong>Revert (当你执行 git revert 时)</strong></li>
+<li><strong>Merge branch (当你执行 git merge 时)</strong></li>
+<li><strong>cherry pick (当你执行 git cherry-pick 时)</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>如果不满足以上任何一种格式，提交会被阻止，并向你展示所有允许的格式和它们的含义，同时提供一个链接让你查看更详细的规范。</li>
+</ul>
+</li>
+</ol>
+<p>这里展开对具体格式提交格式讲讲</p>
+<ul>
+<li><p>格式： <type>:<subject></p>
+<ul>
+<li>type（必填）：用于说明git commit的类别，只允许使用下面的标识。</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">* feat：新功能（feature）</span><br><span class="line">* fix：修复bug</span><br><span class="line">* docs：文档更新</span><br><span class="line">* style：格式更新(修改空白字符，格式缩进，补全缺失的分号等，没有改变代码逻辑)</span><br><span class="line">* refactor：重构代码(既没有新增功能，也没有修复 bug)</span><br><span class="line">* perf：性能, 体验优化</span><br><span class="line">* <span class="built_in">test</span>：新增测试用例或是更新现有测试</span><br><span class="line">* revert：回滚到上一个版本。</span><br><span class="line">* xxxff：代码合并。</span><br><span class="line">* <span class="built_in">sync</span>：同步主线或分支的Bug。</span><br><span class="line">* build：主要目的是修改项目构建系统(例如 glup，webpack，rollup 的配置等)的提交</span><br></pre></td></tr></table></figure>
+<ul>
+<li>subject（必填）：subject是commit目的的简短描述。建议使用中文，结尾不加句号或其他标点符号。<br>  <img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/1ae5f776f95a4d6ab6c9d3e436453a1c.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/1ae5f776f95a4d6ab6c9d3e436453a1c.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"></li>
+</ul>
+</li>
+<li><p>示例：</p>
+<ul>
+<li>fix: 修改内存泄漏问题</li>
+<li>feat: 用户查询接口开发</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-2-流程图版"><a href="#2-2-流程图版" class="headerlink" title="2.2 流程图版"></a>2.2 流程图版</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">  graph TD</span><br><span class="line">A[用户执行 git commit] --&gt; B&#123;钩子开始执行&#125;;</span><br><span class="line"></span><br><span class="line">B --&gt; C&#123;检查 user.email&#125;;</span><br><span class="line">C -- 不合法 --&gt; D[打印邮箱错误信息];</span><br><span class="line">C -- 合法 --&gt; E&#123;检查 user.name&#125;;</span><br><span class="line"></span><br><span class="line">D --&gt; X([终止提交]);</span><br><span class="line"></span><br><span class="line">E -- 不合法 --&gt; F[打印姓名错误信息];</span><br><span class="line">E -- 合法 --&gt; G&#123;检查提交信息的编码&#125;;</span><br><span class="line"></span><br><span class="line">F --&gt; X;</span><br><span class="line"></span><br><span class="line">G -- 非 UTF-8 --&gt; H[打印编码错误信息];</span><br><span class="line">G -- UTF-8 --&gt; I&#123;检查提交信息格式&#125;;</span><br><span class="line"></span><br><span class="line">H --&gt; X;</span><br><span class="line"></span><br><span class="line">I -- 格式正确 --&gt; J([允许提交]);</span><br><span class="line">I -- 格式错误 --&gt; K[打印格式错误信息和规范];</span><br><span class="line"></span><br><span class="line">K --&gt; X;</span><br><span class="line">subgraph &quot;格式检查细节&quot;</span><br><span class="line">    I1[获取 Commit Message] --&gt; I2&#123;&quot;Message 是否以&lt;br&gt;feat: | fix: | docs: | style: | &lt;br&gt;refactor: | test: | chore: &lt;br&gt;Revert | Merge branch | cherry pick&lt;br&gt;开头?&quot;&#125;</span><br><span class="line">    I2 -- 是 --&gt; I;</span><br><span class="line">    I2 -- 否 --&gt; I;</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">style X fill:#f9f,stroke:#333,stroke-width:2px;</span><br><span class="line">style J fill:#9f9,stroke:#333,stroke-width:2px;</span><br></pre></td></tr></table></figure>
+<h2 id="三、不规范commit示例"><a href="#三、不规范commit示例" class="headerlink" title="三、不规范commit示例"></a>三、不规范commit示例</h2><p>在旧规范下依旧存在较多不规范的commit case，其中有些case是可以通过在提交前进行强制拦截的。</p>
+<table>
+<thead>
+<tr>
+<th>case</th>
+<th>问题</th>
+<th>建议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>feat: update data for search</td>
+<td>全英文描述</td>
+<td>尽量使用中文 <br/> eg：更新RN相关的资源</td>
+</tr>
+<tr>
+<td>feat: 更新登陆样式&amp;修改进入页面的链路</td>
+<td>多处功能改动参杂着bug作为一笔提交</td>
+<td>每个 commit 只完善一个功能&#x2F;修复一个问题，保证提交commit的原子性</td>
+</tr>
+<tr>
+<td>fix: ui样式修复</td>
+<td>描述过于简单，无法根据commit知晓修改的功能</td>
+<td>用简洁的语言描述具体的工作 <br />eg: <br />fix: 问一问落地页输入框样式修复<br />feat: DSL升级以支持Kitt引擎</td>
+</tr>
+<tr>
+<td>feat: 提高效率<br /> feat: 提高效率</td>
+<td>多次重复提交同一条commit</td>
+<td>不要在同一个分支下提交重复的commit信息，如果解决的是一类问题，建议squash成一笔提交</td>
+</tr>
+<tr>
+<td>feat: gjfahekfhsarjgjkajrgkntkzghndkztnbhknbhkgjdnthkjgnkdnhjk</td>
+<td>提交的字符过长</td>
+<td>建议subject的字符数不超过72个。<br />（因为Git 工具通常在 72 字符处自动折行，超过会导致信息被截断，影响阅读。）</td>
+</tr>
+<tr>
+<td>fix:     修复了一个线上问题</td>
+<td>描述信息subject的首尾存在多余的空格</td>
+<td>subject的首部至多有一个空格，尾部不应该含有空格</td>
+</tr>
+<tr>
+<td>feat: 你好啊！</td>
+<td>末尾有特殊字符，比如？。等</td>
+<td>commit信息末尾不应该有特殊字符</td>
+</tr>
+</tbody></table>
+<h2 id="四、制定新规范"><a href="#四、制定新规范" class="headerlink" title="四、制定新规范"></a>四、制定新规范</h2><h3 id="4-1-强制约束类"><a href="#4-1-强制约束类" class="headerlink" title="4.1 强制约束类"></a>4.1 强制约束类</h3><ul>
+<li>格式： <code>&lt;type&gt;:[最多一个空格]&lt;subject&gt;[无特殊字符，无空格]</code><br>在原有规范的基础上，新增规范如下：<blockquote>
+<p>注⚠️：如果确实需要紧急合入，则可用<code>--force</code>命令，即 <code>git commit -m &quot;feat: 这是一次紧急提交，忽略新增规范的约束 --force&quot;</code></p>
+</blockquote>
+</li>
+</ul>
+<p><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/9f144115f689448eae1b5edc90f6966e.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/9f144115f689448eae1b5edc90f6966e.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"></p>
+<p>新规范对应的流程图如下：</p>
+<blockquote>
+<p>图太大了，请将手机&#x2F;电脑旋转90度“食用”</p>
+</blockquote>
+<p><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/9e0b3d4224fe4938b3877e6d251f0d8c.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/9e0b3d4224fe4938b3877e6d251f0d8c.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"></p>
+<h3 id="4-2-建议提倡类"><a href="#4-2-建议提倡类" class="headerlink" title="4.2 建议提倡类"></a>4.2 建议提倡类</h3><ul>
+<li>原子性提交：每个 commit 只完善一个功能&#x2F;修复一个问题</li>
+<li>功能完整性：每个 commit 都应该是可编译、可运行的</li>
+<li>逻辑分离：重构、优化和功能开发分开提交</li>
+<li>语义明确：commit描述要清晰、简洁明了，尽量使用中文</li>
+</ul>
+<h2 id="五、hook脚本安装"><a href="#五、hook脚本安装" class="headerlink" title="五、hook脚本安装"></a>五、hook脚本安装</h2><ol>
+<li>创建hook脚本<blockquote>
+<p>已亲测无问题，对应的是第四章节的规范</p>
+</blockquote>
+</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># An example hook script to check the commit log message.</span></span><br><span class="line"><span class="comment"># Called by &quot;git commit&quot; with one argument, the name of the file</span></span><br><span class="line"><span class="comment"># that has the commit message.  The hook should exit with non-zero</span></span><br><span class="line"><span class="comment"># status after issuing an appropriate message if it wants to stop the</span></span><br><span class="line"><span class="comment"># commit.  The hook is allowed to edit the commit message file.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># To enable this hook, rename this file to &quot;commit-msg&quot;.</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Uncomment the below to add a Signed-off-by line to the message.</span></span><br><span class="line"><span class="comment"># Doing this in a hook is a bad idea in general, but the prepare-commit-msg</span></span><br><span class="line"><span class="comment"># hook is more suited to it.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># SOB=$(git var GIT_AUTHOR_IDENT | sed -n &#x27;s/^\(.*&gt;\).*$/Signed-off-by: \1/p&#x27;)</span></span><br><span class="line"><span class="comment"># grep -qs &quot;^$SOB&quot; &quot;$1&quot; || echo &quot;$SOB&quot; &gt;&gt; &quot;$1&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># This example catches duplicate Signed-off-by lines.</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># test &quot;&quot; = &quot;$(grep &#x27;^Signed-off-by: &#x27; &quot;$1&quot; |</span></span><br><span class="line"><span class="comment">#  sort | uniq -c | sed -e &#x27;/^[ ]*1[ ]/d&#x27;)&quot; || &#123;</span></span><br><span class="line"><span class="comment"># echo &gt;&amp;2 Duplicate Signed-off-by lines.</span></span><br><span class="line"><span class="comment"># exit 1</span></span><br><span class="line"><span class="comment"># &#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># &quot;feat:     新功能提交&quot;</span></span><br><span class="line"><span class="comment"># &quot;fix:      修补bug&quot;</span></span><br><span class="line"><span class="comment"># &quot;docs:     文档修改&quot;</span></span><br><span class="line"><span class="comment"># &quot;style:    代码风格,不影响代码运行的变动&quot;</span></span><br><span class="line"><span class="comment"># &quot;refactor: 重构,即非新功能也非bug&quot;</span></span><br><span class="line"><span class="comment"># &quot;test:     测试用例修改&quot;</span></span><br><span class="line"><span class="comment"># &quot;chore:    构建过程或辅助工具的变动&quot;</span></span><br><span class="line"></span><br><span class="line">committer_email = `git config user.email`.force_encoding(<span class="string">&#x27;UTF-8&#x27;</span>).strip</span><br><span class="line"><span class="keyword">if</span> (committer_email.nil?) or (committer_email.empty?)</span><br><span class="line">   puts <span class="string">&quot;The email check failed, ensure that the Git \&quot;user.email\&quot; is not nil or not empty&quot;</span></span><br><span class="line">   puts <span class="string">&quot;The settings is \&quot;git config --local user.email &#x27;xxx@替换成公司后缀.com&#x27;.\&quot; &quot;</span></span><br><span class="line">   <span class="built_in">exit</span>(1)</span><br><span class="line">elsif !(committer_email.end_with? <span class="string">&#x27;@替换成公司后缀.com&#x27;</span>) &amp;&amp; !(committer_email.end_with? <span class="string">&#x27;@替换成公司后缀.net&#x27;</span>)</span><br><span class="line">   puts <span class="string">&quot;The email check failed, please use the email with the end of &#x27;@替换成公司后缀.[com|net]&#x27;&quot;</span></span><br><span class="line">   puts <span class="string">&quot;The settings is \&quot;git config --local user.email &#x27;xxx@替换成公司后缀.[com|net]&#x27;.\&quot; &quot;</span></span><br><span class="line">   <span class="built_in">exit</span>(1)</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">committer_name  = `git config user.name`.force_encoding(<span class="string">&#x27;UTF-8&#x27;</span>).strip</span><br><span class="line"><span class="keyword">if</span> (committer_name.nil?) or (committer_name.empty?)</span><br><span class="line">   puts <span class="string">&quot;The name check failed, ensure that the Git \&quot;user.name\&quot; is not nil or not empty&quot;</span></span><br><span class="line">   puts <span class="string">&quot;The settings is \&quot;git config --global user.name &#x27;chinese_name&#x27; (Suggestion).\&quot; &quot;</span></span><br><span class="line">   <span class="built_in">exit</span>(1)</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">commit_msg = File.<span class="built_in">read</span>(ARGV.first)</span><br><span class="line">commit_msg.force_encoding(<span class="string">&#x27;UTF-8&#x27;</span>)</span><br><span class="line"><span class="keyword">if</span> (commit_msg.valid_encoding? == <span class="literal">false</span>)</span><br><span class="line">   puts <span class="string">&quot;Encoding is not utf-8&quot;</span></span><br><span class="line">   <span class="built_in">exit</span>(1)</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (commit_msg.start_with?(<span class="string">&quot;feat:&quot;</span>) || commit_msg.start_with?(<span class="string">&quot;fix:&quot;</span>) || commit_msg.start_with?(<span class="string">&quot;docs:&quot;</span>) ||</span><br><span class="line">   commit_msg.start_with?(<span class="string">&quot;style:&quot;</span>) || commit_msg.start_with?(<span class="string">&quot;refactor:&quot;</span>) || commit_msg.start_with?(<span class="string">&quot;test:&quot;</span>) ||</span><br><span class="line">   commit_msg.start_with?(<span class="string">&quot;chore:&quot;</span>) || commit_msg.start_with?(<span class="string">&quot;Revert&quot;</span>) || commit_msg.start_with?(<span class="string">&quot;Merge branch&quot;</span>) || commit_msg.start_with?(<span class="string">&quot;cherry pick&quot;</span>))</span><br><span class="line"></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">   puts <span class="string">&quot;Commit message 格式错误&quot;</span></span><br><span class="line">   puts <span class="string">&quot;参考格式: https://xxx.md&quot;</span></span><br><span class="line">   puts <span class="string">&quot;feat:     新功能提交&quot;</span></span><br><span class="line">   puts <span class="string">&quot;fix:      修补bug&quot;</span></span><br><span class="line">   puts <span class="string">&quot;docs:     文档修改&quot;</span></span><br><span class="line">   puts <span class="string">&quot;style:    代码风格,不影响代码运行的变动&quot;</span></span><br><span class="line">   puts <span class="string">&quot;refactor: 重构,即非新功能也非bug&quot;</span></span><br><span class="line">   puts <span class="string">&quot;test:     测试用例修改&quot;</span></span><br><span class="line">   puts <span class="string">&quot;chore:    构建过程或辅助工具的变动&quot;</span></span><br><span class="line">   <span class="built_in">exit</span>(1)</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line"><span class="comment">####################### 新规范 start #######################</span></span><br><span class="line"></span><br><span class="line"><span class="comment">### 1. 自动修正首尾多余的空格，并给出警告</span></span><br><span class="line">full_first_line = commit_msg.split(<span class="string">&quot;\n&quot;</span>).first</span><br><span class="line">original_full_first_line = full_first_line.dup</span><br><span class="line"></span><br><span class="line"><span class="comment"># 分割 type 和 subject</span></span><br><span class="line">parts = full_first_line.split(<span class="string">&#x27;:&#x27;</span>, 2)</span><br><span class="line"><span class="built_in">type</span> = parts[0]</span><br><span class="line">subject = parts[1] || <span class="string">&quot;&quot;</span> <span class="comment"># 处理没有 subject 的情况</span></span><br><span class="line"></span><br><span class="line">original_subject = subject.dup</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修正 subject 的尾部空格</span></span><br><span class="line">subject.gsub!(/\s+$/, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修正 subject 的首部空格（允许至多一个空格）</span></span><br><span class="line"><span class="keyword">if</span> subject.match?(/^\s&#123;2,&#125;/) <span class="comment"># 检查是否存在超过1个的前导空格</span></span><br><span class="line">   subject.gsub!(/^\s+/, <span class="string">&#x27; &#x27;</span>) <span class="comment"># 将多个前导空格替换为一个空格</span></span><br><span class="line">end</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果 subject 发生了变化，则重组并更新</span></span><br><span class="line"><span class="keyword">if</span> subject != original_subject</span><br><span class="line">   new_first_line = <span class="string">&quot;#&#123;type&#125;:#&#123;subject&#125;&quot;</span> <span class="comment"># 直接拼接，不额外添加空格</span></span><br><span class="line">   puts <span class="string">&quot;[警告⚠️] 检测到提交信息主题部分首尾有多余空格，已自动修正。&quot;</span></span><br><span class="line"></span><br><span class="line">   <span class="comment"># 重组整个 commit message</span></span><br><span class="line">   lines = commit_msg.split(<span class="string">&quot;\n&quot;</span>)</span><br><span class="line">   lines[0] = new_first_line</span><br><span class="line">   commit_msg = lines.join(<span class="string">&quot;\n&quot;</span>)</span><br><span class="line">   File.write(ARGV.first, commit_msg)</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line"><span class="comment">### 2. 基础规范检查完成，现在处理 --force 和新规范</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查提交信息内部是否包含 --force</span></span><br><span class="line">is_force_commit = commit_msg.strip.end_with?(<span class="string">&#x27;--force&#x27;</span>)</span><br><span class="line">clean_commit_msg = is_force_commit ? commit_msg.gsub(/--force\s*$/, <span class="string">&#x27;&#x27;</span>).strip : commit_msg</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果是强制提交，将清理后的 message 写回文件</span></span><br><span class="line"><span class="keyword">if</span> is_force_commit</span><br><span class="line">   File.write(ARGV.first, clean_commit_msg)</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取最终的（经过空格修正后的）提交信息进行后续检查</span></span><br><span class="line">final_commit_msg = File.<span class="built_in">read</span>(ARGV.first).force_encoding(<span class="string">&#x27;UTF-8&#x27;</span>)</span><br><span class="line">final_first_line = final_commit_msg.split(<span class="string">&quot;\n&quot;</span>).first.strip</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查 subject 是否为空（这个检查始终执行，即使是 --force）</span></span><br><span class="line">final_parts = final_first_line.split(<span class="string">&#x27;:&#x27;</span>, 2)</span><br><span class="line">final_subject = (final_parts[1] || <span class="string">&quot;&quot;</span>).strip</span><br><span class="line"><span class="keyword">if</span> final_subject.empty?</span><br><span class="line">   <span class="keyword">if</span> is_force_commit</span><br><span class="line">       puts <span class="string">&quot;[警告⚠️] 提交信息的主题部分为空。【已强制提交message】&quot;</span></span><br><span class="line">   <span class="keyword">else</span></span><br><span class="line">       puts <span class="string">&quot;[错误❌] 提交信息的主题部分不能为空。&quot;</span></span><br><span class="line">       puts <span class="string">&quot;请提供有意义的提交描述，例如: feat: 添加用户语音搜索功能&quot;</span></span><br><span class="line">       <span class="built_in">exit</span>(1)</span><br><span class="line">   end</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> is_force_commit</span><br><span class="line">   puts <span class="string">&quot;[警告⚠️] 检测到 --force 标志，已跳过部分提交规范检查。&quot;</span></span><br><span class="line">   <span class="comment"># 检查第一行 commit信息的末尾不应该有。.？?！!</span></span><br><span class="line">   <span class="keyword">if</span> final_first_line.end_with?(<span class="string">&quot;.&quot;</span>) || final_first_line.end_with?(<span class="string">&quot;?&quot;</span>) || final_first_line.end_with?(<span class="string">&quot;!&quot;</span>) || final_first_line.end_with?(<span class="string">&quot;。&quot;</span>) || final_first_line.end_with?(<span class="string">&quot;？&quot;</span>) || final_first_line.end_with?(<span class="string">&quot;！&quot;</span>)</span><br><span class="line">       puts <span class="string">&quot;[警告⚠️] 提交信息的第一行末尾不应包含标点符号 (. ? ! 。 ？ ！)。【已强制提交message】&quot;</span></span><br><span class="line">   end</span><br><span class="line"></span><br><span class="line">   <span class="comment"># 检查第一行 commit信息最大不超过72个字符</span></span><br><span class="line">   <span class="keyword">if</span> final_first_line.length &gt; 72</span><br><span class="line">       puts <span class="string">&quot;[警告⚠️] 提交信息的第一行长度建议不超过 72 个字符 (当前: #&#123;final_first_line.length&#125;)。【已强制提交message】&quot;</span></span><br><span class="line">   end</span><br><span class="line"></span><br><span class="line">   <span class="comment"># 在同一个git分支下，禁止提交信息与历史重复</span></span><br><span class="line">   current_branch = `git rev-parse --abbrev-ref HEAD`.strip</span><br><span class="line">   historic_commits = `git <span class="built_in">log</span> <span class="comment">#&#123;current_branch&#125; --pretty=format:%s`.split(&quot;\n&quot;)</span></span><br><span class="line">   <span class="keyword">if</span> historic_commits.include?(final_first_line)</span><br><span class="line">       puts <span class="string">&quot;[警告⚠️] 当前分支 \&quot;#&#123;current_branch&#125;\&quot; 已存在相同的提交信息。【已强制提交message】&quot;</span></span><br><span class="line">   end</span><br><span class="line"></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">   <span class="comment"># 严格执行新规范检查</span></span><br><span class="line">   <span class="comment">### 3. 检查第一行 commit信息的末尾不应该有。.？?！!</span></span><br><span class="line">   <span class="keyword">if</span> final_first_line.end_with?(<span class="string">&quot;.&quot;</span>) || final_first_line.end_with?(<span class="string">&quot;?&quot;</span>) || final_first_line.end_with?(<span class="string">&quot;!&quot;</span>) || final_first_line.end_with?(<span class="string">&quot;。&quot;</span>) || final_first_line.end_with?(<span class="string">&quot;？&quot;</span>) || final_first_line.end_with?(<span class="string">&quot;！&quot;</span>)</span><br><span class="line">       puts <span class="string">&quot;[错误❌] 提交信息的第一行末尾不应包含标点符号 (. ? ! 。 ？ ！)&quot;</span></span><br><span class="line">       <span class="built_in">exit</span>(1)</span><br><span class="line">   end</span><br><span class="line"></span><br><span class="line">   <span class="comment">### 4. 检查第一行 commit信息最大不超过72个字符</span></span><br><span class="line">   <span class="keyword">if</span> final_first_line.length &gt; 72</span><br><span class="line">       puts <span class="string">&quot;[错误❌] 提交信息的第一行长度不能超过 72 个字符。&quot;</span></span><br><span class="line">       puts <span class="string">&quot;当前长度: #&#123;final_first_line.length&#125;&quot;</span></span><br><span class="line">       <span class="built_in">exit</span>(1)</span><br><span class="line">   end</span><br><span class="line"></span><br><span class="line">   <span class="comment">### 5. 在同一个git分支下，禁止提交信息与历史重复</span></span><br><span class="line">   current_branch = `git rev-parse --abbrev-ref HEAD`.strip</span><br><span class="line">   historic_commits = `git <span class="built_in">log</span> <span class="comment">#&#123;current_branch&#125; --pretty=format:%s`.split(&quot;\n&quot;)</span></span><br><span class="line">   <span class="keyword">if</span> historic_commits.include?(final_first_line)</span><br><span class="line">       puts <span class="string">&quot;[错误❌] 当前分支 \&quot;#&#123;current_branch&#125;\&quot; 已存在相同的提交信息。&quot;</span></span><br><span class="line"></span><br><span class="line">       puts <span class="string">&quot;请修改提交信息以确保其独特性。&quot;</span></span><br><span class="line">       <span class="built_in">exit</span>(1)</span><br><span class="line">   end</span><br><span class="line"></span><br><span class="line">end</span><br><span class="line"></span><br><span class="line"><span class="comment">####################### 新规范 end #######################</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># echo &quot;commit-msg: &quot;</span></span><br><span class="line"><span class="comment"># echo $1</span></span><br><span class="line"><span class="comment"># exit 1</span></span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>修改将 buildsystem&#x2F;githooks 目录视为存放钩子脚本的地方 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config core.hooksPath buildsystem/githooks</span><br></pre></td></tr></table></figure></li>
+<li>赋予执行权限 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">chmod</span> +x buildsystem/githooks/commit-msg</span><br></pre></td></tr></table></figure></li>
+<li>将文件权限的变更添加到暂存区 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git add buildsystem/githooks/commit-msg</span><br></pre></td></tr></table></figure></li>
+<li>进行代码commit</li>
+</ol>
+<h2 id="六、推荐commit插件"><a href="#六、推荐commit插件" class="headerlink" title="六、推荐commit插件"></a>六、推荐commit插件</h2><ul>
+<li>插件：<a target="_blank" rel="noopener" href="https://juejin.cn/post/7343811223208050729?searchId=202508051056054C30D74B4D496DE4D055">git commit message helper</a><br>  <img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/190f2a0196744bc494ebdb9492a50467.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/190f2a0196744bc494ebdb9492a50467.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/951807120d5240448573b79d8179a9e7.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/951807120d5240448573b79d8179a9e7.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"></li>
+</ul>
 
       </div>
       <div class="post-tags-categories">
+        
+        <div class="tags">
+          
+            <a href="/tags/git/" class="">
+              git
+            </a>
+          
+        </div>
         
       </div>
       
@@ -476,7 +630,7 @@
     </li>
     <li class="post-copyright-link">
     <strong>link:  </strong>
-    <a href="/2025/04/14/hello-world/" target="_blank" title="Hello World">http://example.com/2025/04/14/hello-world/</a>
+    <a href="/2026/02/26/团队协作中Git Commit应该如何规范化/" target="_blank" title="团队协作中Git Commit应该如何规范化">http://example.com/2026/02/26/团队协作中Git Commit应该如何规范化/</a>
     </li>
     <li class="post-copyright-license">
       <strong>Copyright notice:   </strong>
@@ -494,27 +648,25 @@
 
 
 
+
+
   
-  <div class="post-nav-prev post-nav-item">
+  <div class="post-nav-next post-nav-item">
     <div class="post-nav-img" style="background-size: cover; 
       background-position: center center;">
-      <img class="lazyload lazyload placeholder" src="https://pic2.zhimg.com/80/v2-29e78b52051ce542adf6d786d61fbd19_1440w.webp" class="lazyload placeholder" data-srcset="https://pic2.zhimg.com/80/v2-29e78b52051ce542adf6d786d61fbd19_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+      <img class="lazyload lazyload placeholder" src="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" class="lazyload placeholder" data-srcset="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" src="" alt="">
     </div>
-    <a href="/2025/04/15/hexo%E6%A1%86%E6%9E%B6-github%E5%88%9B%E5%BB%BA%E5%B1%9E%E4%BA%8E%E8%87%AA%E5%B7%B1%E7%9A%84%E5%8D%9A%E5%AE%A2/" class="post-nav-link">
+    <a href="/2026/02/26/%E5%8C%BF%E5%90%8D%E5%AF%B9%E8%B1%A1%E8%A2%AB%E5%BC%B1%E5%BC%95%E7%94%A8%E5%90%8E%E6%8F%90%E5%89%8D%E5%9B%9E%E6%94%B6%E7%9A%84%E9%97%AE%E9%A2%98/" class="post-nav-link">
       <div class="title">
-        <i class="fas fa-angle-left"></i> Prev:
-        <div class="title-text">hexo框架+github如何创建属于自己的博客</div>
+        Next: <i class="fas fa-angle-right"></i>
+        <div class="title-text">匿名对象被弱引用后提前回收的问题</div>
       </div>
-      
       <!-- <div class="content">
-        hexo框架+github创建属于自己的博客一、环境准备
-安装 Node.js
-前往 Node.js 官网下载并安装最新
+        匿名对象被弱引用后提前回收的问题
+背景：做语音搜索项目时，发现一个bug，第一次进入语音页，网络断开和连接，都会走正常的
       </div> -->
     </a>
   </div>
-
-
 
 </div>
 
@@ -733,7 +885,7 @@
   <div class='content'>
     <div class="toc-main">
       <div class="toc-content">
-        <!-- <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Quick-Start"><span class="toc-text">Quick Start</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Create-a-new-post"><span class="toc-text">Create a new post</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Run-server"><span class="toc-text">Run server</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Generate-static-files"><span class="toc-text">Generate static files</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Deploy-to-remote-sites"><span class="toc-text">Deploy to remote sites</span></a></li></ol></li></ol> -->
+        <!-- <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%83%8C%E6%99%AF"><span class="toc-text">一、背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%B8%80%E8%88%AC%E7%9A%84commit-message%E6%A0%BC%E5%BC%8F"><span class="toc-text">二、一般的commit message格式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%96%87%E5%AD%97%E7%89%88"><span class="toc-text">2.1 文字版</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%B5%81%E7%A8%8B%E5%9B%BE%E7%89%88"><span class="toc-text">2.2 流程图版</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%8D%E8%A7%84%E8%8C%83commit%E7%A4%BA%E4%BE%8B"><span class="toc-text">三、不规范commit示例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%88%B6%E5%AE%9A%E6%96%B0%E8%A7%84%E8%8C%83"><span class="toc-text">四、制定新规范</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%BC%BA%E5%88%B6%E7%BA%A6%E6%9D%9F%E7%B1%BB"><span class="toc-text">4.1 强制约束类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%BB%BA%E8%AE%AE%E6%8F%90%E5%80%A1%E7%B1%BB"><span class="toc-text">4.2 建议提倡类</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81hook%E8%84%9A%E6%9C%AC%E5%AE%89%E8%A3%85"><span class="toc-text">五、hook脚本安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%8E%A8%E8%8D%90commit%E6%8F%92%E4%BB%B6"><span class="toc-text">六、推荐commit插件</span></a></li></ol> -->
         <div class="toc"></div>
       </div>
     </div>

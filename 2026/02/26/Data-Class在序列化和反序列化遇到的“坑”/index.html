@@ -11,7 +11,7 @@
   <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-  <title>Hello World | Penghc_Blog</title>
+  <title>Data Class在序列化和反序列化遇到的“坑” | Penghc_Blog</title>
 
   <link rel="icon" type="image/x-icon, image/vnd.microsoft.icon" href="/favicon.ico">
   <link rel="stylesheet" href="https://at.alicdn.com/t/font_1911880_c1nvbyezg17.css">
@@ -412,21 +412,21 @@
 
 
 <div class="post-detail-header" id="thumbnail_canvas" style="background-repeat: no-repeat; background-size: cover; 
-  background-position: center center;position: relative;background-image:url('https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp')">
+  background-position: center center;position: relative;background-image:url('https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp')">
   <div class="post-detail-header-mask"></div>
   <canvas id="header_canvas"style="position:absolute;bottom:0;pointer-events:none;"></canvas>
   
   <div class="post-detail-header_info-box">
     <div class="title-box">
       <span class="title">
-        Hello World
+        Data Class在序列化和反序列化遇到的“坑”
       </span>
     </div>
     
     
       
         <span class="post-detail-header_date">
-          <i class="fas fa-calendar"></i> Published in：2025-04-14 |
+          <i class="fas fa-calendar"></i> Published in：2026-02-26 |
         </span>
       
 
@@ -450,22 +450,102 @@
   <div class="main-content">
     <article class="post post-detail">
       <div class="post-content">
-        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+        <h1 id="Data-Class在序列化和反序列化遇到的“坑”"><a href="#Data-Class在序列化和反序列化遇到的“坑”" class="headerlink" title="Data Class在序列化和反序列化遇到的“坑”"></a>Data Class在序列化和反序列化遇到的“坑”</h1><hr>
+<p>在 Kotlin 中，data class 是一种特殊的类，专为存储数据而设计。它可以自动生成与数据相关的标准方法（如 equals()、hashCode()、toString() 等），显著减少样板代码。</p>
+<h2 id="1-基本语法与特性"><a href="#1-基本语法与特性" class="headerlink" title="1. 基本语法与特性"></a>1. 基本语法与特性</h2><h3 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h3><p>使用 data class 关键字声明，需至少有一个主构造参数，且所有主构造参数必须标记为 val 或 var：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">User</span>(</span><br><span class="line">    <span class="keyword">val</span> id: <span class="built_in">Int</span>,          <span class="comment">// 不可变属性（推荐）</span></span><br><span class="line">    <span class="keyword">var</span> name: String,     <span class="comment">// 可变属性</span></span><br><span class="line">    <span class="keyword">val</span> age: <span class="built_in">Int</span> = <span class="number">18</span>     <span class="comment">// 带默认值的属性</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h3 id="自动生成的方法"><a href="#自动生成的方法" class="headerlink" title="自动生成的方法"></a>自动生成的方法</h3><p>编译器会自动为 data class 生成以下方法：</p>
+<ul>
+<li><strong>equals() 和 hashCode()</strong>：用于对象比较和哈希操作。</li>
+<li><strong>toString()</strong>：格式为 ClassName(property1&#x3D;value1, property2&#x3D;value2, …)。</li>
+<li><strong>componentN() 函数</strong>：按声明顺序对应每个属性，支持解构声明。</li>
+<li><strong>copy()</strong> 函数：用于创建对象的副本，可选择性修改部分属性。</li>
+</ul>
+<h2 id="2-序列化和反序列化（坑）"><a href="#2-序列化和反序列化（坑）" class="headerlink" title="2. 序列化和反序列化（坑）"></a>2. 序列化和反序列化（坑）</h2><blockquote>
+<p>ps：由于业务实践上的序列化和反序列化一般都是需要服务端通过json构造数据，客户端进行解析。这里为了说明问题，就不采用@SerializedName+mock数据的方式了，直接构造数据</p>
+</blockquote>
+<ul>
+<li><p>正常的序列化和反序列化例子</p>
+<ul>
+<li>Data Class  <figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">	<span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Data</span>(</span><br><span class="line">	    <span class="keyword">val</span> name: String = <span class="string">&quot;test&quot;</span>,</span><br><span class="line">	    <span class="keyword">val</span> content: String</span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">- 测试</span><br><span class="line">	```kotlin</span><br><span class="line">		<span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	    <span class="keyword">val</span> gson = Gson()</span><br><span class="line">	    <span class="keyword">val</span> <span class="keyword">data</span> = Data(<span class="string">&quot;phc&quot;</span>,<span class="string">&quot;你好&quot;</span>)</span><br><span class="line">	    <span class="comment">// 序列化:类对象-&gt;json string</span></span><br><span class="line">	    <span class="keyword">val</span> jsonString = gson.toJson(<span class="keyword">data</span>)</span><br><span class="line">	    println(jsonString)</span><br><span class="line">	 </span><br><span class="line">	    <span class="comment">// 反序列化</span></span><br><span class="line">	    <span class="keyword">val</span> restoreData = gson.fromJson(jsonString,Data::<span class="keyword">class</span>.java)</span><br><span class="line">	    println(restoreData)</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></li>
+<li>输出<br>  <img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/22d54bdb22c640e3b746f60d800e8d8a.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/22d54bdb22c640e3b746f60d800e8d8a.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>  这个看起来确实很正常</li>
+</ul>
+</li>
+<li><p><strong>gson()+data class带来的坑</strong></p>
+<ul>
+<li><p>Data Class</p>
+  <figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Data</span>(</span><br><span class="line">    <span class="keyword">val</span> name: String = <span class="string">&quot;test&quot;</span>,</span><br><span class="line">    <span class="keyword">val</span> content: String</span><br><span class="line">)</span><br></pre></td></tr></table></figure></li>
+<li><p>测试</p>
+  <figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> gson = Gson()</span><br><span class="line">    <span class="comment">// 序列化:类对象-&gt;json string</span></span><br><span class="line">    <span class="keyword">val</span> jsonString = <span class="string">&quot;&#123;\&quot;content\&quot;:\&quot;你好\&quot;&#125;&quot;</span> <span class="comment">// 没有给name赋值</span></span><br><span class="line">    println(jsonString)</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 反序列化</span></span><br><span class="line">    <span class="keyword">val</span> restoreData = gson.fromJson(jsonString,Data::<span class="keyword">class</span>.java)</span><br><span class="line">    println(restoreData)</span><br><span class="line">    println(restoreData.name) <span class="comment">// 输出默认值 null，因为 name 没有在 JSON 中提供</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>输出<br>  <img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/da59d2c453bd4e2dbf77602fe3461dcc.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/da59d2c453bd4e2dbf77602fe3461dcc.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>  这里大家可能就有疑问了：我明明在Data Class中对name赋予了默认值”test”，只是在json中没有给name值（在实际场景中可能会存在服务端对部分字段不返回的情况），为什么输出的name还是null呢？这要是不小心使用了Data里的name，不得来个NPE崩溃？！</p>
+<p>  这里查阅了相关资料：默认值不会生效的原因是 <strong>Gson 的工作机制与 Kotlin 的默认参数不兼容</strong>。具体分析如下：</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h3><ul>
+<li>Gson 的反序列化逻辑：<br>Gson 通过 反射调用<strong>无参构造函数</strong>来创建对象，然后直接设置字段值。对于 JSON 中不存在的字段，Gson 会将其设为 null，不会触发 Kotlin 的默认参数机制。</li>
+<li>Kotlin 默认参数的工作方式：<br>Kotlin 的默认参数仅在 构造函数调用时 生效。但 Gson 不通过构造函数创建对象，而是直接操作字段，因此默认参数被忽略。</li>
+</ul>
+<p>Gson是通过反射来构造对象的，当这个类有无参构造函数时，便会通过<strong>无参构造函数</strong>实例化对象，当这个类没有无参构造函数时，便会通过<strong>Unsafe.allocateInstance生成对象</strong><br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/c3caae6677bf4f6189f87337a281e51e.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/c3caae6677bf4f6189f87337a281e51e.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>如上图所示，我们之前Data Class的写法都不会生成无参构造函数，所以Gson反序列化对象时自然也不会触发默认赋值逻辑。只会触发<strong>Unsafe.allocateInstance</strong>分配内存、然后通过反射给字段赋值；碰到 JSON 里没有的字段，就干脆不赋，Java 层面的对象字段就保持原生的 null。</p>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3><h4 id="1-使用-Kotlin-反射适配器（推荐）"><a href="#1-使用-Kotlin-反射适配器（推荐）" class="headerlink" title="1. 使用 Kotlin 反射适配器（推荐）"></a>1. 使用 Kotlin 反射适配器（推荐）</h4><p>添加 gson-kotlin 依赖，它提供了 Kotlin 支持：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">implementation(<span class="string">&quot;com.google.code.gson:gson:2.10.1&quot;</span>)</span><br><span class="line">implementation(<span class="string">&quot;com.google.code.gson:gson-kotlin:2.10.1&quot;</span>)  <span class="comment">// 新增依赖</span></span><br></pre></td></tr></table></figure>
+<p>然后创建 Gson 实例时注册 Kotlin 适配器：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> gson = GsonBuilder()</span><br><span class="line">    .registerTypeAdapterFactory(KotlinReflectionFactory())  <span class="comment">// 关键</span></span><br><span class="line">    .create()</span><br><span class="line"> </span><br><span class="line"><span class="keyword">val</span> restoreData = gson.fromJson(jsonString, Data::<span class="keyword">class</span>.java)</span><br><span class="line">println(restoreData.name)  <span class="comment">// 输出 &quot;test&quot;（默认值生效）</span></span><br></pre></td></tr></table></figure>
+<h4 id="2-使用-Kotlinx-Serialization（替代-Gson）"><a href="#2-使用-Kotlinx-Serialization（替代-Gson）" class="headerlink" title="2. 使用 Kotlinx Serialization（替代 Gson）"></a>2. 使用 Kotlinx Serialization（替代 Gson）</h4><p>Kotlinx Serialization 是官方库，对 Kotlin 特性支持更好：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> kotlinx.serialization.Serializable</span><br><span class="line"><span class="keyword">import</span> kotlinx.serialization.json.Json</span><br><span class="line"> </span><br><span class="line"><span class="meta">@Serializable</span></span><br><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Data</span>(</span><br><span class="line">    <span class="keyword">val</span> name: String = <span class="string">&quot;test&quot;</span>,</span><br><span class="line">    <span class="keyword">val</span> content: String</span><br><span class="line">)</span><br><span class="line"> </span><br><span class="line"><span class="keyword">val</span> jsonString = <span class="string">&quot;&#123;\&quot;content\&quot;:\&quot;你好\&quot;&#125;&quot;</span></span><br><span class="line"><span class="keyword">val</span> <span class="keyword">data</span> = Json.decodeFromString&lt;Data&gt;(jsonString)</span><br><span class="line">println(<span class="keyword">data</span>.name)  <span class="comment">// 输出 &quot;test&quot;</span></span><br></pre></td></tr></table></figure>
+<h4 id="3-手动处理默认值（不优雅但可行）"><a href="#3-手动处理默认值（不优雅但可行）" class="headerlink" title="3. 手动处理默认值（不优雅但可行）"></a>3. 手动处理默认值（不优雅但可行）</h4><p>在类中添加初始化逻辑：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Data</span>(</span><br><span class="line">    <span class="keyword">val</span> name: String?,</span><br><span class="line">    <span class="keyword">val</span> content: String</span><br><span class="line">) &#123;</span><br><span class="line">    <span class="keyword">init</span> &#123;</span><br><span class="line">        <span class="comment">// 如果 name 为 null，使用默认值</span></span><br><span class="line">        <span class="keyword">if</span> (name == <span class="literal">null</span>) <span class="keyword">throw</span> IllegalArgumentException(<span class="string">&quot;name cannot be null&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="4-每次都给Data-Class的成员变量设置默认值，让其可以生成无参构造函数"><a href="#4-每次都给Data-Class的成员变量设置默认值，让其可以生成无参构造函数" class="headerlink" title="4. 每次都给Data Class的成员变量设置默认值，让其可以生成无参构造函数"></a>4. 每次都给Data Class的成员变量设置默认值，让其可以生成无参构造函数</h4><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Data</span>(</span><br><span class="line">    <span class="keyword">val</span> name: String = <span class="string">&quot;test&quot;</span>,</span><br><span class="line">    <span class="keyword">val</span> content: String = <span class="string">&quot;&quot;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h3 id="Gson-vs-Kotlinx-Serialization"><a href="#Gson-vs-Kotlinx-Serialization" class="headerlink" title="Gson vs Kotlinx Serialization"></a>Gson vs Kotlinx Serialization</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Gson</th>
+<th>Kotlinx Serialization</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Kotlin 默认参数支持</td>
+<td>❌（需额外配置）</td>
+<td>✅（原生支持）</td>
+</tr>
+<tr>
+<td>空安全处理</td>
+<td>❌（可能产生 NPE）</td>
+<td>✅（类型安全）</td>
+</tr>
+<tr>
+<td>数据类解构支持</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>注解支持</td>
+<td>有限（需使用 Java 注解）</td>
+<td>丰富（Kotlin 专用注解）</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>一般</td>
+<td>优秀</td>
+</tr>
+</tbody></table>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>Gson 在反序列化时 <strong>不会自动应用 Kotlin 的默认参数值</strong>，导致缺失的字段被设为 null。推荐使用 gson-kotlin 适配器或切换到 Kotlinx Serialization 以获得更好的 Kotlin 支持。</p>
+<blockquote>
+<p>Gson 默认并不支持 Kotlin 的构造函数默认值：它直接反射分配、跳过了编译时生成的“带默认值”构造函数，所以缺字段就得不到默认值，而是 null。要么手动补 ?: “test”，要么给 Gson 加个 Kotlin-aware 的 TypeAdapterFactory，或者干脆换一个对 Kotlin 默认值支持更好的库（Moshi&#x2F;Kotlinx.serialization）。这样就能在 JSON 里漏掉 name 字段时，依然拿到 “test” 了。</p>
+</blockquote>
 
       </div>
       <div class="post-tags-categories">
+        
+        <div class="tags">
+          
+            <a href="/tags/Kotlin/" class="">
+              Kotlin
+            </a>
+          
+        </div>
         
       </div>
       
@@ -476,7 +556,7 @@
     </li>
     <li class="post-copyright-link">
     <strong>link:  </strong>
-    <a href="/2025/04/14/hello-world/" target="_blank" title="Hello World">http://example.com/2025/04/14/hello-world/</a>
+    <a href="/2026/02/26/Data-Class在序列化和反序列化遇到的“坑”/" target="_blank" title="Data Class在序列化和反序列化遇到的“坑”">http://example.com/2026/02/26/Data-Class在序列化和反序列化遇到的“坑”/</a>
     </li>
     <li class="post-copyright-license">
       <strong>Copyright notice:   </strong>
@@ -498,23 +578,41 @@
   <div class="post-nav-prev post-nav-item">
     <div class="post-nav-img" style="background-size: cover; 
       background-position: center center;">
-      <img class="lazyload lazyload placeholder" src="https://pic2.zhimg.com/80/v2-29e78b52051ce542adf6d786d61fbd19_1440w.webp" class="lazyload placeholder" data-srcset="https://pic2.zhimg.com/80/v2-29e78b52051ce542adf6d786d61fbd19_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+      <img class="lazyload lazyload placeholder" src="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" class="lazyload placeholder" data-srcset="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
     </div>
-    <a href="/2025/04/15/hexo%E6%A1%86%E6%9E%B6-github%E5%88%9B%E5%BB%BA%E5%B1%9E%E4%BA%8E%E8%87%AA%E5%B7%B1%E7%9A%84%E5%8D%9A%E5%AE%A2/" class="post-nav-link">
+    <a href="/2026/02/26/%E5%8C%BF%E5%90%8D%E5%AF%B9%E8%B1%A1%E8%A2%AB%E5%BC%B1%E5%BC%95%E7%94%A8%E5%90%8E%E6%8F%90%E5%89%8D%E5%9B%9E%E6%94%B6%E7%9A%84%E9%97%AE%E9%A2%98/" class="post-nav-link">
       <div class="title">
         <i class="fas fa-angle-left"></i> Prev:
-        <div class="title-text">hexo框架+github如何创建属于自己的博客</div>
+        <div class="title-text">匿名对象被弱引用后提前回收的问题</div>
       </div>
       
       <!-- <div class="content">
-        hexo框架+github创建属于自己的博客一、环境准备
-安装 Node.js
-前往 Node.js 官网下载并安装最新
+        匿名对象被弱引用后提前回收的问题
+背景：做语音搜索项目时，发现一个bug，第一次进入语音页，网络断开和连接，都会走正常的
       </div> -->
     </a>
   </div>
 
 
+
+  
+  <div class="post-nav-next post-nav-item">
+    <div class="post-nav-img" style="background-size: cover; 
+      background-position: center center;">
+      <img class="lazyload lazyload placeholder" src="https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp" class="lazyload placeholder" data-srcset="https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" src="" alt="">
+    </div>
+    <a href="/2025/06/02/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/" class="post-nav-link">
+      <div class="title">
+        Next: <i class="fas fa-angle-right"></i>
+        <div class="title-text">Android事件分发机制详解(一)</div>
+      </div>
+      <!-- <div class="content">
+        Android事件分发机制详解(一)
+目录
+1. 基础认知1.1 事件分发的”事件“是指什么？答：点击事件（Touch事
+      </div> -->
+    </a>
+  </div>
 
 </div>
 
@@ -733,7 +831,7 @@
   <div class='content'>
     <div class="toc-main">
       <div class="toc-content">
-        <!-- <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Quick-Start"><span class="toc-text">Quick Start</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Create-a-new-post"><span class="toc-text">Create a new post</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Run-server"><span class="toc-text">Run server</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Generate-static-files"><span class="toc-text">Generate static files</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Deploy-to-remote-sites"><span class="toc-text">Deploy to remote sites</span></a></li></ol></li></ol> -->
+        <!-- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Data-Class%E5%9C%A8%E5%BA%8F%E5%88%97%E5%8C%96%E5%92%8C%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E9%81%87%E5%88%B0%E7%9A%84%E2%80%9C%E5%9D%91%E2%80%9D"><span class="toc-text">Data Class在序列化和反序列化遇到的“坑”</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E4%B8%8E%E7%89%B9%E6%80%A7"><span class="toc-text">1. 基本语法与特性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89"><span class="toc-text">定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90%E7%9A%84%E6%96%B9%E6%B3%95"><span class="toc-text">自动生成的方法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%BA%8F%E5%88%97%E5%8C%96%E5%92%8C%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E5%9D%91%EF%BC%89"><span class="toc-text">2. 序列化和反序列化（坑）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%8E%9F%E5%9B%A0"><span class="toc-text">问题原因</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-text">解决方案</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E4%BD%BF%E7%94%A8-Kotlin-%E5%8F%8D%E5%B0%84%E9%80%82%E9%85%8D%E5%99%A8%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-text">1. 使用 Kotlin 反射适配器（推荐）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E4%BD%BF%E7%94%A8-Kotlinx-Serialization%EF%BC%88%E6%9B%BF%E4%BB%A3-Gson%EF%BC%89"><span class="toc-text">2. 使用 Kotlinx Serialization（替代 Gson）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E6%89%8B%E5%8A%A8%E5%A4%84%E7%90%86%E9%BB%98%E8%AE%A4%E5%80%BC%EF%BC%88%E4%B8%8D%E4%BC%98%E9%9B%85%E4%BD%86%E5%8F%AF%E8%A1%8C%EF%BC%89"><span class="toc-text">3. 手动处理默认值（不优雅但可行）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E6%AF%8F%E6%AC%A1%E9%83%BD%E7%BB%99Data-Class%E7%9A%84%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F%E8%AE%BE%E7%BD%AE%E9%BB%98%E8%AE%A4%E5%80%BC%EF%BC%8C%E8%AE%A9%E5%85%B6%E5%8F%AF%E4%BB%A5%E7%94%9F%E6%88%90%E6%97%A0%E5%8F%82%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0"><span class="toc-text">4. 每次都给Data Class的成员变量设置默认值，让其可以生成无参构造函数</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Gson-vs-Kotlinx-Serialization"><span class="toc-text">Gson vs Kotlinx Serialization</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li></ol></li></ol></li></ol> -->
         <div class="toc"></div>
       </div>
     </div>

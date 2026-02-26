@@ -451,9 +451,9 @@
     <article class="post post-detail">
       <div class="post-content">
         <h1 id="Android事件分发机制详解-一"><a href="#Android事件分发机制详解-一" class="headerlink" title="Android事件分发机制详解(一)"></a>Android事件分发机制详解(一)</h1><hr>
-<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><p><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3(%E4%B8%80)/%E7%9B%AE%E5%BD%95.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3(%E4%B8%80)/%E7%9B%AE%E5%BD%95.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="img"></p>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><p><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/%E7%9B%AE%E5%BD%95.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/%E7%9B%AE%E5%BD%95.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="img"></p>
 <h2 id="1-基础认知"><a href="#1-基础认知" class="headerlink" title="1. 基础认知"></a>1. 基础认知</h2><h3 id="1-1-事件分发的”事件“是指什么？"><a href="#1-1-事件分发的”事件“是指什么？" class="headerlink" title="1.1 事件分发的”事件“是指什么？"></a>1.1 事件分发的”事件“是指什么？</h3><p><strong>答：点击事件（<code>Touch</code>事件）</strong>。具体介绍如下：</p>
-<p><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3(%E4%B8%80)/%E7%82%B9%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%AE%9A%E4%B9%89.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3(%E4%B8%80)/%E7%82%B9%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%AE%9A%E4%B9%89.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="img"></p>
+<p><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/%E7%82%B9%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%AE%9A%E4%B9%89.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/%E7%82%B9%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%AE%9A%E4%B9%89.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="img"></p>
 <p>此处需要特别说明：事件列，即指从手指接触屏幕至手指离开屏幕这个过程产生的一系列事件。一般情况下，事件列都是以DOWN事件开始、UP事件结束，中间有无数的MOVE事件。</p>
 <p><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/%E4%BA%8B%E4%BB%B6%E5%AE%9A%E4%B9%89.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/%E4%BA%8B%E4%BB%B6%E5%AE%9A%E4%B9%89.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="img"></p>
 <h3 id="1-2-事件分发的本质"><a href="#1-2-事件分发的本质" class="headerlink" title="1.2 事件分发的本质"></a>1.2 事件分发的本质</h3><p><strong>答：将点击事件（MotionEvent）传递到某个具体的<code>View</code> &amp; 处理的整个过程</strong></p>
@@ -562,6 +562,7 @@
 <blockquote>
 <p>即：<code>Activity</code>、<code>ViewGroup</code>、<code>View</code> 的事件分发机制</p>
 </blockquote>
+<p>参考文档：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/38015afcdb58">https://www.jianshu.com/p/38015afcdb58</a></p>
 
       </div>
       <div class="post-tags-categories">
@@ -600,6 +601,25 @@
 <div class="post-nav">
 
 
+
+  
+  <div class="post-nav-prev post-nav-item">
+    <div class="post-nav-img" style="background-size: cover; 
+      background-position: center center;">
+      <img class="lazyload lazyload placeholder" src="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" class="lazyload placeholder" data-srcset="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+    </div>
+    <a href="/2026/02/26/Data-Class%E5%9C%A8%E5%BA%8F%E5%88%97%E5%8C%96%E5%92%8C%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E9%81%87%E5%88%B0%E7%9A%84%E2%80%9C%E5%9D%91%E2%80%9D/" class="post-nav-link">
+      <div class="title">
+        <i class="fas fa-angle-left"></i> Prev:
+        <div class="title-text">Data Class在序列化和反序列化遇到的“坑”</div>
+      </div>
+      
+      <!-- <div class="content">
+        Data Class在序列化和反序列化遇到的“坑”
+在 Kotlin 中，data class 是一种特殊的类，专为存储
+      </div> -->
+    </a>
+  </div>
 
 
 
@@ -870,6 +890,69 @@
             
 
             <div class="post-img-box">
+              <a href="/2026/02/26/%E5%9B%A2%E9%98%9F%E5%8D%8F%E4%BD%9C%E4%B8%ADGit%20Commit%E5%BA%94%E8%AF%A5%E5%A6%82%E4%BD%95%E8%A7%84%E8%8C%83%E5%8C%96/" class="post-img " style="background-size: cover; 
+                background-position: center center;">
+                <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="https://pica.zhimg.com/80/v2-573ac3e25de03fad9c32add5a05e5cfc_1440w.webp" class="lazyload placeholder" data-srcset="https://pica.zhimg.com/80/v2-573ac3e25de03fad9c32add5a05e5cfc_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+              </a>
+            </div>
+            <div class="post-date-title">
+              <div>
+                
+                  <span class="post-date">02-26</span>
+                
+              </div>
+              <a class="post-title" href="/2026/02/26/%E5%9B%A2%E9%98%9F%E5%8D%8F%E4%BD%9C%E4%B8%ADGit%20Commit%E5%BA%94%E8%AF%A5%E5%A6%82%E4%BD%95%E8%A7%84%E8%8C%83%E5%8C%96/">团队协作中Git Commit应该如何规范化</a>
+            </div>
+          </div>
+        
+          <div class="aside-list-item">
+            
+            
+            
+
+            <div class="post-img-box">
+              <a href="/2026/02/26/%E5%8C%BF%E5%90%8D%E5%AF%B9%E8%B1%A1%E8%A2%AB%E5%BC%B1%E5%BC%95%E7%94%A8%E5%90%8E%E6%8F%90%E5%89%8D%E5%9B%9E%E6%94%B6%E7%9A%84%E9%97%AE%E9%A2%98/" class="post-img " style="background-size: cover; 
+                background-position: center center;">
+                <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" class="lazyload placeholder" data-srcset="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+              </a>
+            </div>
+            <div class="post-date-title">
+              <div>
+                
+                  <span class="post-date">02-26</span>
+                
+              </div>
+              <a class="post-title" href="/2026/02/26/%E5%8C%BF%E5%90%8D%E5%AF%B9%E8%B1%A1%E8%A2%AB%E5%BC%B1%E5%BC%95%E7%94%A8%E5%90%8E%E6%8F%90%E5%89%8D%E5%9B%9E%E6%94%B6%E7%9A%84%E9%97%AE%E9%A2%98/">匿名对象被弱引用后提前回收的问题</a>
+            </div>
+          </div>
+        
+          <div class="aside-list-item">
+            
+            
+            
+
+            <div class="post-img-box">
+              <a href="/2026/02/26/Data-Class%E5%9C%A8%E5%BA%8F%E5%88%97%E5%8C%96%E5%92%8C%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E9%81%87%E5%88%B0%E7%9A%84%E2%80%9C%E5%9D%91%E2%80%9D/" class="post-img " style="background-size: cover; 
+                background-position: center center;">
+                <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" class="lazyload placeholder" data-srcset="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+              </a>
+            </div>
+            <div class="post-date-title">
+              <div>
+                
+                  <span class="post-date">02-26</span>
+                
+              </div>
+              <a class="post-title" href="/2026/02/26/Data-Class%E5%9C%A8%E5%BA%8F%E5%88%97%E5%8C%96%E5%92%8C%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E9%81%87%E5%88%B0%E7%9A%84%E2%80%9C%E5%9D%91%E2%80%9D/">Data Class在序列化和反序列化遇到的“坑”</a>
+            </div>
+          </div>
+        
+          <div class="aside-list-item">
+            
+            
+            
+
+            <div class="post-img-box">
               <a href="/2025/06/02/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/" class="post-img " style="background-size: cover; 
                 background-position: center center;">
                 <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp" class="lazyload placeholder" data-srcset="https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
@@ -903,48 +986,6 @@
                 
               </div>
               <a class="post-title" href="/2025/04/16/%E7%BA%BF%E7%A8%8B%E6%B1%A0ThreadPoolExecutor%E8%AF%A6%E8%A7%A3/">线程池ThreadPoolExecutor详解</a>
-            </div>
-          </div>
-        
-          <div class="aside-list-item">
-            
-            
-            
-
-            <div class="post-img-box">
-              <a href="/2025/04/15/hexo%E6%A1%86%E6%9E%B6-github%E5%88%9B%E5%BB%BA%E5%B1%9E%E4%BA%8E%E8%87%AA%E5%B7%B1%E7%9A%84%E5%8D%9A%E5%AE%A2/" class="post-img " style="background-size: cover; 
-                background-position: center center;">
-                <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="https://pic2.zhimg.com/80/v2-29e78b52051ce542adf6d786d61fbd19_1440w.webp" class="lazyload placeholder" data-srcset="https://pic2.zhimg.com/80/v2-29e78b52051ce542adf6d786d61fbd19_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
-              </a>
-            </div>
-            <div class="post-date-title">
-              <div>
-                
-                  <span class="post-date">04-15</span>
-                
-              </div>
-              <a class="post-title" href="/2025/04/15/hexo%E6%A1%86%E6%9E%B6-github%E5%88%9B%E5%BB%BA%E5%B1%9E%E4%BA%8E%E8%87%AA%E5%B7%B1%E7%9A%84%E5%8D%9A%E5%AE%A2/">hexo框架+github如何创建属于自己的博客</a>
-            </div>
-          </div>
-        
-          <div class="aside-list-item">
-            
-            
-            
-
-            <div class="post-img-box">
-              <a href="/2025/04/14/hello-world/" class="post-img " style="background-size: cover; 
-                background-position: center center;">
-                <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp" class="lazyload placeholder" data-srcset="https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
-              </a>
-            </div>
-            <div class="post-date-title">
-              <div>
-                
-                  <span class="post-date">04-14</span>
-                
-              </div>
-              <a class="post-title" href="/2025/04/14/hello-world/">Hello World</a>
             </div>
           </div>
         
