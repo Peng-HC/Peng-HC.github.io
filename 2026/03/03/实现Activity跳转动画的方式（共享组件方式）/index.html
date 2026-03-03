@@ -11,7 +11,7 @@
   <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-  <title>Hello World | Penghc_Blog</title>
+  <title>实现Activity跳转动画的方式（共享组件方式） | Penghc_Blog</title>
 
   <link rel="icon" type="image/x-icon, image/vnd.microsoft.icon" href="/favicon.ico">
   <link rel="stylesheet" href="https://at.alicdn.com/t/font_1911880_c1nvbyezg17.css">
@@ -412,21 +412,21 @@
 
 
 <div class="post-detail-header" id="thumbnail_canvas" style="background-repeat: no-repeat; background-size: cover; 
-  background-position: center center;position: relative;background-image:url('https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp')">
+  background-position: center center;position: relative;background-image:url('https://pic4.zhimg.com/80/v2-83ea273b88e119d9615aed0d89aad4ab_1440w.webp')">
   <div class="post-detail-header-mask"></div>
   <canvas id="header_canvas"style="position:absolute;bottom:0;pointer-events:none;"></canvas>
   
   <div class="post-detail-header_info-box">
     <div class="title-box">
       <span class="title">
-        Hello World
+        实现Activity跳转动画的方式（共享组件方式）
       </span>
     </div>
     
     
       
         <span class="post-detail-header_date">
-          <i class="fas fa-calendar"></i> Published in：2025-04-14 |
+          <i class="fas fa-calendar"></i> Published in：2026-03-03 |
         </span>
       
 
@@ -450,22 +450,52 @@
   <div class="main-content">
     <article class="post post-detail">
       <div class="post-content">
-        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+        <p>相信大部分的Android开发者都已经知道Activity的跳转方式（eg：通过intent跳转），也见过市面上app页面互相跳转的炫酷动效。今天我们就来详细了解一下Activity之间跳转的动画是咋制作的？</p>
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>在介绍activity的切换动画之前我们先来说明一下实现切换activity的两种方式：</p>
+<ul>
+<li>调用startActivity方法启动一个新的Activity并跳转其页面<ul>
+<li>当调用startActivity方法的时候启动一个新的activity，这时候就涉及到了旧的Activity的退出动画和新的Activity的显示动画；</li>
+</ul>
+</li>
+<li>调用finish方法销毁当前的Activity返回上一个Activity界面<ul>
+<li>当调用finish方法的时候，销毁当前Acitivity，就涉及到了当前Activity的退出动画和前一个Activity的显示动画；</li>
+</ul>
+</li>
+</ul>
+<p>所以我们的activity跳转动画是分为两个部分的：<strong>一个Activity的销毁动画与一个Activity的显示动画</strong>，明白了这一点之后我们开始看一下第一种实现Activity跳转动画的方式：通过overridePendingTransition方法实现Activity切换动画。</p>
+<h2 id="一、使用overridePendingTransition方法实现Activity跳转动画"><a href="#一、使用overridePendingTransition方法实现Activity跳转动画" class="headerlink" title="一、使用overridePendingTransition方法实现Activity跳转动画"></a>一、使用overridePendingTransition方法实现Activity跳转动画</h2><p>overridePendingTransition方法是Activity中提供的Activity跳转动画方法，通过该方法可以实现Activity跳转时的动画效果。下面我们就将通过一个简单的例子看一下如何通过overridePendingTransition方法实现Activity的切换动画。<br>demo例子中我们实现了Activity a中有一个点击按钮，点击按钮实现跳转Activity b的逻辑，具体代码如下：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">button1.setOnClickListener(new View.OnClickListener() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> void onClick(View v) &#123;</span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * 在调用了startActivity方法之后立即调用overridePendingTransition方法</span></span><br><span class="line"><span class="comment">         * 第一个参数：新Activity的进入动画</span></span><br><span class="line"><span class="comment">         * 第二个参数：当前Activity的退出动画</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        Intent intent = new Intent(MainActivity.<span class="keyword">this</span>, SecondActivity.<span class="keyword">class</span>);</span><br><span class="line">        startActivity(intent);</span><br><span class="line">        <span class="comment">// 设置过渡动画：这里两个参数都用了slide_in_left，实际使用时通常会分别设置进入和退出动画</span></span><br><span class="line">        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_in_left);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>可以看到我们在调用了startActivity方法之后又执行了overridePendingTransition方法，而在overridePendingTransition方法中传递了两个动画布局文件，我们首先看一下这里的动画文件具体是怎么实现的：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">set</span> <span class="attr">xmlns:Android</span>=<span class="string">&quot;http://schemas.Android.com/apk/res/Android&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">Android:shareInterpolator</span>=<span class="string">&quot;false&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">Android:zAdjustment</span>=<span class="string">&quot;top&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">translate</span></span></span><br><span class="line"><span class="tag">        <span class="attr">Android:duration</span>=<span class="string">&quot;200&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">Android:fromXDelta</span>=<span class="string">&quot;-100.0%p&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">Android:toXDelta</span>=<span class="string">&quot;0.0&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">set</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>这里的overridePendingTransition方法传递的是两个动画文件id，第一个参数是需要打开的Activity进入时的动画，第二个参数是需要关闭的Activity离开时的动画。这样我们执行了这段代码之后在跳转Activity的时候就展示了动画效果：<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/5b21bf505aca4102b99a995447b13b5b.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/5b21bf505aca4102b99a995447b13b5b.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>动画的效果是通过overridePendingTransition方法实现的，那么下面我们来看一下overridePendingTransition方法的定义，我们在overridependingTransition方法在定义的时候有这样的一段注释说明：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Call immediately after one of the flavors of &#123;<span class="doctag">@link</span> #startActivity(Intent)&#125;</span></span><br><span class="line"><span class="comment"> * or &#123;<span class="doctag">@link</span> #finish&#125; to specify an explicit transition animation to</span></span><br><span class="line"><span class="comment"> * perform next.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> enterAnim A resource ID of the animation resource to use for</span></span><br><span class="line"><span class="comment"> * the incoming activity.  Use 0 for no animation.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> exitAnim A resource ID of the animation resource to use for</span></span><br><span class="line"><span class="comment"> * the outgoing activity.  Use 0 for no animation.</span></span><br><span class="line"><span class="comment"> */</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>overridePendingTransition方法需要在startAtivity方法或者是finish方法调用之后立即执行</li>
+<li>参数enterAnim表示的是从Activity a跳转到Activity b，进入b时的动画效果</li>
+<li>参数exitAnim表示的是从Activity a跳转到Activity b，离开a时的动过效果</li>
+<li>若进入b或者是离开a时不需要动画效果，则可以传值为0</li>
+</ul>
+<h2 id="二、使用ActivityOptions动画共享组件的方式实现跳转Activity动画"><a href="#二、使用ActivityOptions动画共享组件的方式实现跳转Activity动画" class="headerlink" title="二、使用ActivityOptions动画共享组件的方式实现跳转Activity动画"></a>二、使用ActivityOptions动画共享组件的方式实现跳转Activity动画</h2><p>在有些场景中，Activity之间会共用一些view以便页面跳转时能过更加丝滑。这就不得不用到ActivityOptions来实现了。<br>这里的共享组件动画效果是指将前面一个Activity的某个子View与后面一个Activity的某个子View之间有过渡效果，即在这种过度效果下实现Activity的跳转操作。那么如何实现两个组件View之间实现过渡效果呢？</p>
+<h3 id="2-1定义共享组件"><a href="#2-1定义共享组件" class="headerlink" title="2.1定义共享组件"></a>2.1定义共享组件</h3><p>为Activity b中的ImageView设置transitionName属性：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:tools</span>=<span class="string">&quot;http://schemas.android.com/tools&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:orientation</span>=<span class="string">&quot;vertical&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">tools:context</span>=<span class="string">&quot;.页面跳转动画.ActivityB&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">ImageView</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">&quot;@+id/imageView&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">&quot;300dp&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:src</span>=<span class="string">&quot;@drawable/ic_launcher_foreground&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:transitionName</span>=<span class="string">&quot;sharedElement&quot;</span> /&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">TextView</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_marginTop</span>=<span class="string">&quot;10dp&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:gravity</span>=<span class="string">&quot;center&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:text</span>=<span class="string">&quot;我是页面B&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:textSize</span>=<span class="string">&quot;16sp&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:textStyle</span>=<span class="string">&quot;bold&quot;</span> /&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">Button</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">&quot;@+id/jumpToAnotherActivity&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_marginTop</span>=<span class="string">&quot;10dp&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:gravity</span>=<span class="string">&quot;center&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:text</span>=<span class="string">&quot;回退到页面A&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:textSize</span>=<span class="string">&quot;14sp&quot;</span> /&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">TextView</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_marginTop</span>=<span class="string">&quot;10dp&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:lineSpacingExtra</span>=<span class="string">&quot;6dp&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:padding</span>=<span class="string">&quot;16dp&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:text</span>=<span class="string">&quot;这是一段文字介绍：共享元素动画的本质是：让两个 Activity 中标记为 “同名共享元素” 的 View，在跳转时执行连贯的过渡动画，看起来像是同一个元素从第一个页面 “移动” 到第二个页面。\n要使动画生效，必须满足以下条件：</span></span></span><br><span class="line"><span class="string"><span class="tag">1. ActivityA 中：共享的 View（如imageView）无需额外配置，但需在代码中通过makeSceneTransitionAnimation指定。</span></span></span><br><span class="line"><span class="string"><span class="tag">2. ActivityB 中：对应的共享 View 必须在布局文件中设置android:transitionName属性，且值与代码中的“完全一致”&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:textSize</span>=<span class="string">&quot;14sp&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>在Activity b的布局文件中为组件定义<strong>transitionName</strong>属性，这样这两个组件相当于有了过渡（transition）对应关系，这里需要注意的是这两个组件的transitionName属性的值必须是相同的。</p>
+<h3 id="2-2-调用startActivity执行跳转动画"><a href="#2-2-调用startActivity执行跳转动画" class="headerlink" title="2.2 调用startActivity执行跳转动画"></a>2.2 调用startActivity执行跳转动画</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ActivityA</span> : <span class="type">AppCompatActivity</span>() &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">lateinit</span> <span class="keyword">var</span> btn: Button</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">lateinit</span> <span class="keyword">var</span> imageView: ImageView</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">(savedInstanceState: <span class="type">Bundle</span>?)</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState)</span><br><span class="line">        setContentView(R.layout.activity_a)</span><br><span class="line">        btn = findViewById(R.id.jumpToAnotherActivity)</span><br><span class="line">        imageView = findViewById(R.id.imageView)</span><br><span class="line">        btn.setOnClickListener &#123;</span><br><span class="line">            startActivity(</span><br><span class="line">                Intent(<span class="keyword">this</span>,ActivityB::<span class="keyword">class</span>.java),</span><br><span class="line">                ActivityOptionsCompat.makeSceneTransitionAnimation(<span class="keyword">this</span>,imageView,<span class="string">&quot;sharedElement&quot;</span>).toBundle()</span><br><span class="line">            )</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>需要说明的是这里调用的<strong>ActivityOptions.makeSceneTransitionAnimation</strong>方法，传递了三个参数，其中第一个参数为context对象，第二个参数为启动Activity的共享组件，第三个参数为启动Activity的共享组件transitionName属性值。<br>这样经过调用之后我们就实现了从Activity a跳转到Activity b的时候a中的组件到b中组件的过度效果。<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/0a895118d0ea4e12ba058d8fa3e2f46e.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/0a895118d0ea4e12ba058d8fa3e2f46e.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"></p>
 
       </div>
       <div class="post-tags-categories">
+        
+        <div class="tags">
+          
+            <a href="/tags/Android/" class="">
+              Android
+            </a>
+          
+            <a href="/tags/Activity/" class="">
+              Activity
+            </a>
+          
+        </div>
         
       </div>
       
@@ -476,7 +506,7 @@
     </li>
     <li class="post-copyright-link">
     <strong>link:  </strong>
-    <a href="/2025/04/14/hello-world/" target="_blank" title="Hello World">http://example.com/2025/04/14/hello-world/</a>
+    <a href="/2026/03/03/实现Activity跳转动画的方式（共享组件方式）/" target="_blank" title="实现Activity跳转动画的方式（共享组件方式）">http://example.com/2026/03/03/实现Activity跳转动画的方式（共享组件方式）/</a>
     </li>
     <li class="post-copyright-license">
       <strong>Copyright notice:   </strong>
@@ -498,23 +528,38 @@
   <div class="post-nav-prev post-nav-item">
     <div class="post-nav-img" style="background-size: cover; 
       background-position: center center;">
-      <img class="lazyload lazyload placeholder" src="https://pic2.zhimg.com/80/v2-29e78b52051ce542adf6d786d61fbd19_1440w.webp" class="lazyload placeholder" data-srcset="https://pic2.zhimg.com/80/v2-29e78b52051ce542adf6d786d61fbd19_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+      <img class="lazyload lazyload placeholder" src="https://pica.zhimg.com/80/v2-573ac3e25de03fad9c32add5a05e5cfc_1440w.webp" class="lazyload placeholder" data-srcset="https://pica.zhimg.com/80/v2-573ac3e25de03fad9c32add5a05e5cfc_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
     </div>
-    <a href="/2025/04/15/hexo%E6%A1%86%E6%9E%B6-github%E5%88%9B%E5%BB%BA%E5%B1%9E%E4%BA%8E%E8%87%AA%E5%B7%B1%E7%9A%84%E5%8D%9A%E5%AE%A2/" class="post-nav-link">
+    <a href="/2026/03/03/Recyclerview%E5%9B%9E%E6%94%B6%E5%A4%8D%E7%94%A8%E6%9C%BA%E5%88%B6%E2%80%94%E2%80%94%E5%9B%BE%E6%96%87%E8%AF%A6%E8%A7%A3/" class="post-nav-link">
       <div class="title">
         <i class="fas fa-angle-left"></i> Prev:
-        <div class="title-text">hexo框架+github如何创建属于自己的博客</div>
+        <div class="title-text">Recyclerview回收复用机制——图文详解</div>
       </div>
       
       <!-- <div class="content">
-        hexo框架+github创建属于自己的博客一、环境准备
-安装 Node.js
-前往 Node.js 官网下载并安装最新
+        前言最近在开发大图预览页时，利用了Recyclerview滑动特性，将每张图片作为一个itemView，布局为填充整个屏
       </div> -->
     </a>
   </div>
 
 
+
+  
+  <div class="post-nav-next post-nav-item">
+    <div class="post-nav-img" style="background-size: cover; 
+      background-position: center center;">
+      <img class="lazyload lazyload placeholder" src="https://pic4.zhimg.com/80/v2-83ea273b88e119d9615aed0d89aad4ab_1440w.webp" class="lazyload placeholder" data-srcset="https://pic4.zhimg.com/80/v2-83ea273b88e119d9615aed0d89aad4ab_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" src="" alt="">
+    </div>
+    <a href="/2026/03/02/%E4%B8%80%E6%96%87%E8%AF%A6%E7%BB%86%E8%A7%A3%E6%9E%90ThreadPoolExector%E7%BA%BF%E7%A8%8B%E6%B1%A0/" class="post-nav-link">
+      <div class="title">
+        Next: <i class="fas fa-angle-right"></i>
+        <div class="title-text">一文详细解析ThreadPoolExector线程池</div>
+      </div>
+      <!-- <div class="content">
+        最近的项目里用到了线程池来处理“生产者-消费者”模式，今天主要是来系统学习一下线程池的概念以及如何自己手搓一个简易的线程
+      </div> -->
+    </a>
+  </div>
 
 </div>
 
@@ -733,7 +778,7 @@
   <div class='content'>
     <div class="toc-main">
       <div class="toc-content">
-        <!-- <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Quick-Start"><span class="toc-text">Quick Start</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Create-a-new-post"><span class="toc-text">Create a new post</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Run-server"><span class="toc-text">Run server</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Generate-static-files"><span class="toc-text">Generate static files</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Deploy-to-remote-sites"><span class="toc-text">Deploy to remote sites</span></a></li></ol></li></ol> -->
+        <!-- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">前言</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BD%BF%E7%94%A8overridePendingTransition%E6%96%B9%E6%B3%95%E5%AE%9E%E7%8E%B0Activity%E8%B7%B3%E8%BD%AC%E5%8A%A8%E7%94%BB"><span class="toc-text">一、使用overridePendingTransition方法实现Activity跳转动画</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BD%BF%E7%94%A8ActivityOptions%E5%8A%A8%E7%94%BB%E5%85%B1%E4%BA%AB%E7%BB%84%E4%BB%B6%E7%9A%84%E6%96%B9%E5%BC%8F%E5%AE%9E%E7%8E%B0%E8%B7%B3%E8%BD%ACActivity%E5%8A%A8%E7%94%BB"><span class="toc-text">二、使用ActivityOptions动画共享组件的方式实现跳转Activity动画</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1%E5%AE%9A%E4%B9%89%E5%85%B1%E4%BA%AB%E7%BB%84%E4%BB%B6"><span class="toc-text">2.1定义共享组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%B0%83%E7%94%A8startActivity%E6%89%A7%E8%A1%8C%E8%B7%B3%E8%BD%AC%E5%8A%A8%E7%94%BB"><span class="toc-text">2.2 调用startActivity执行跳转动画</span></a></li></ol></li></ol></li></ol> -->
         <div class="toc"></div>
       </div>
     </div>

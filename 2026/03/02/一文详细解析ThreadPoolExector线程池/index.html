@@ -1,0 +1,2074 @@
+<!DOCTYPE html>
+<html>
+  <!-- meta/link... -->
+  
+
+
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+  <title>一文详细解析ThreadPoolExector线程池 | Penghc_Blog</title>
+
+  <link rel="icon" type="image/x-icon, image/vnd.microsoft.icon" href="/favicon.ico">
+  <link rel="stylesheet" href="https://at.alicdn.com/t/font_1911880_c1nvbyezg17.css">
+  <link href="https://unpkg.com/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+  <link href="/js/swiper/swiper@5.4.1.min.css" rel="stylesheet">
+  
+  
+    <script>
+        var themeModelId = '';
+        if (themeModelId) {
+            localStorage.setItem('modelId', themeModelId);
+        }
+    </script>
+    
+    <script async src="https://cdn.jsdelivr.net/gh/yuang01/live2d-widget@latest/autoload.js"></script>
+    <script>
+        var live2dOpen = eval('true') || false;
+        if (!live2dOpen) {
+            localStorage.setItem('waifu-display', 1609323474481);
+        }
+    </script>
+  
+  
+  
+<link rel="stylesheet" href="/css/animate.min.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+    <link href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" rel="stylesheet">
+  
+  
+    
+<link rel="stylesheet" href="/js/shareJs/share.min.css">
+
+  
+  <style>
+        @media (max-width: 992px) {
+            #waifu {
+                display: none;
+            }
+        }
+    </style>
+    <script defer src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/pink/pace-theme-flash.css" rel="stylesheet">
+
+    
+    
+    <!-- 依赖于jquery和vue -->
+    <script src="https://unpkg.com/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://unpkg.com/vue@2.6.11/dist/vue.min.js"></script>
+
+    <!-- import link -->
+    
+        
+            
+        
+            
+        
+    
+    <!-- import script -->
+    
+        
+            
+        
+            
+        
+    
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+  
+  <!-- 预加载动画 -->
+  
+  
+  <div class="preloader_2" id="loader">
+  <div class="loader"></div>
+</div>
+
+  <script>
+    var endLoading = function () {
+      document.body.style.overflow = 'auto';
+      document.getElementById('loader').classList.add("loaded");
+    }
+    window.addEventListener('DOMContentLoaded', endLoading);
+  </script>
+
+
+  <body>
+    <!-- 判断是否为暗黑风格 -->
+    <!-- 判断是否为黑夜模式 -->
+<script defer>
+  let isDark = JSON.parse(localStorage.getItem('dark')) || JSON.parse('false');
+
+  if (isDark) {
+    $(document.body).addClass('darkModel');
+  }
+</script>
+
+    <!-- 需要在上面加载的js -->
+    <script>
+  function loadScript(src, cb) {
+    return new Promise(resolve => {
+      setTimeout(function () {
+        var HEAD = document.getElementsByTagName("head")[0] || document.documentElement;
+        var script = document.createElement("script");
+        script.setAttribute("type", "text/javascript");
+        if (cb) {
+          if (JSON.stringify(cb)) {
+            for (let p in cb) {
+              if (p == "onload") {
+                script[p] = () => {
+                  cb[p]()
+                  resolve()
+                }
+              } else {
+                script[p] = cb[p]
+                script.onload = resolve
+              }
+            }
+          } else {
+            script.onload = () => {
+              cb()
+              resolve()
+            };
+          }
+        } else {
+          script.onload = resolve
+        }
+        script.setAttribute("src", src);
+        HEAD.appendChild(script);
+      });
+    });
+  }
+
+  //https://github.com/filamentgroup/loadCSS
+  var loadCSS = function (src) {
+    return new Promise(resolve => {
+      setTimeout(function () {
+        var link = document.createElement('link');
+        link.rel = "stylesheet";
+        link.href = src;
+        link.onload = resolve;
+        document.getElementsByTagName("head")[0].appendChild(link);
+      });
+    });
+  };
+
+</script> 
+
+<!-- 轮播图所需要的js -->
+<script src="/js/swiper/swiper.min.js"></script>
+<script src="/js/swiper/vue-awesome-swiper.js"></script>
+<script src="/js/swiper/swiper.animate1.0.3.min.js"></script>
+
+<script type="text/javascript">
+  Vue.use(window.VueAwesomeSwiper)
+</script>
+
+
+  <script src="/js/vue-typed-js/index.js"></script>
+
+
+<!-- 首页的公告滚动插件的js需要重新加载 -->
+<script src="/js/vue-seamless-scroll/index.js"></script>
+
+<!-- 打字机效果js -->
+<script src="https://unpkg.com/typed.js@2.0.11"></script>
+
+
+    <div id="safearea">
+      <main class="main" id="pjax-container">
+        <!-- 头部导航 -->
+        
+<header class="header  " 
+  id="navHeader"
+  style="position: fixed;
+  left: 0; top: 0; z-index: 10;width: 100%;"
+>
+  <div class="header-content">
+    <div class="bars">
+      <div id="appDrawer" class="sidebar-image">
+  <div class="drawer-box-icon">
+    <i class="fas fa-bars" aria-hidden="true" @click="showDialogDrawer"></i>
+  </div>
+  
+  <transition name="fade">
+    <div class="drawer-box_mask" v-cloak style="display: none;" v-show="visible" @click.self="cancelDialogDrawer">
+    </div>
+  </transition>
+  <div class="drawer-box" :class="{'active': visible}">
+    <div class="drawer-box-head bg-color">
+      <img class="drawer-box-head_logo lazyload placeholder" src="/medias/logo.png" class="lazyload placeholder" data-srcset="/medias/logo.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="logo">
+      <h3 class="drawer-box-head_title">Penghc_Blog</h3>
+      <h5 class="drawer-box-head_desc">欢迎来到我的世界～</h5>
+    </div>
+    
+    <div class="drawer-box-content">
+      <ul class="drawer-box-content_menu">
+        
+        
+          <li class="drawer-box-content_item">
+            <a target="_blank" rel="noopener" href="https://github.com/Peng-HC">
+              <i class="fas fa-github" aria-hidden="true"></i>
+              <span>Github</span>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  var body = document.body || document.documentElement || window;
+  var vm = new Vue({
+    el: '#appDrawer',
+    data: {
+      visible: false,
+      top: 0,
+      openArr: [],
+    },
+    computed: {
+    },
+    mounted() {
+    },
+    methods: {
+      isOpen(index) {
+        if (this.openArr.includes(index)) {
+          return true;
+        } else {
+          return false;
+        }
+      },
+      openOrCloseMenu(curIndex) {
+        const index = this.openArr.indexOf(curIndex);
+        if (index !== -1) {
+          this.openArr.splice(index, 1);
+        } else {
+          this.openArr.push(curIndex);
+        }
+      },
+      showDialogDrawer() {
+        this.visible = true;
+        // 防止页面滚动，只能让弹框滚动
+        this.top = $(document).scrollTop()
+        body.style.cssText = 'width: 100%; height: 100%;overflow: hidden;';
+      },
+      cancelDialogDrawer() {
+        this.visible = false;
+        body.removeAttribute('style');
+        $(document).scrollTop(this.top)
+      }
+    },
+    created() {}
+  })
+</script>
+
+    </div>
+    <div class="blog-title" id="author-avatar">
+      
+        <div class="avatar">
+          <img src="/medias/logo.png" class="lazyload placeholder" data-srcset="/medias/logo.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="logo">
+        </div>
+      
+      <a href="/" class="logo">Penghc_Blog</a>
+    </div>
+    <nav class="navbar">
+      <ul class="menu">
+        
+      </ul>
+      
+      
+        <div id="appSearch">
+  <div class="search"  @click="showDialog()"><i class="fas fa-search" aria-hidden="true"></i></div>
+  <transition name="fade">
+    <div class="message-box_wrapper" style="display: none;" v-cloak v-show="dialogVisible" @click.self="cancelDialogVisible()">
+      <div class="message-box animated bounceInDown">
+        <h2>
+          <span>
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <span class="title">Search</span>
+          </span>
+          <i class="fas fa-times close" pointer style="float:right;" aria-hidden="true" @click.self="cancelDialogVisible()"></i>
+        </h2>
+        <form class="site-search-form">
+          <input type="text"
+            placeholder="Please enter keywords"
+            id="local-search-input" 
+            @click="getSearchFile()"
+            class="st-search-input"
+            v-model="searchInput"
+          />
+        </form>
+        <div class="result-wrapper">
+          <div id="local-search-result" class="local-search-result-cls"></div>
+        </div>
+      </div>
+    </div>
+  </transition>
+</div>
+<script src="/js/local_search.js"></script>
+<script>
+  var body = document.body || document.documentElement || window;
+  var vm = new Vue({
+    el: '#appSearch',
+    data: {
+      dialogVisible: false,
+      searchInput: '',
+      top: 0,
+    },
+    computed: {
+    },
+    mounted() {
+      window.addEventListener('pjax:complete', () => {
+        this.cancelDialogVisible();
+      })
+    },
+    methods: {
+      showDialog() {
+        this.dialogVisible = true;
+        // 防止页面滚动，只能让弹框滚动
+        this.top = $(document).scrollTop()
+        body.style.cssText = 'overflow: hidden;';
+      },
+      getSearchFile() {
+        if (!this.searchInput) {
+          getSearchFile("/search.xml");
+        }
+      },
+      cancelDialogVisible() {
+        this.dialogVisible = false;
+        body.removeAttribute('style');
+        $(document).scrollTop(this.top)
+      },
+    },
+    created() {}
+  })
+</script>
+<!-- 解决刷新页面闪烁问题，可以在元素上添加display: none, 或者用vue.extend方法，详情：https://blog.csdn.net/qq_31393401/article/details/81017912 -->
+<!-- 下面是搜索基本写法 -->
+<!-- <script type="text/javascript" id="local.search.active">
+  var inputArea = document.querySelector("#local-search-input");
+  inputArea.onclick   = function(){ getSearchFile(); this.onclick = null }
+  inputArea.onkeydown = function(){ if(event.keyCode == 13) return false }
+</script> -->
+
+      
+
+    </nav>
+  </div>
+  
+    <a target="_blank" rel="noopener" href="https://github.com/Peng-HC" class="github-corner color-primary" aria-label="View source on GitHub"><svg width="60" height="60" viewBox="0 0 250 250" style="fill:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+  
+  
+    <div id="he-plugin-simple"></div>
+    <script defer>
+      WIDGET = {
+        CONFIG: {
+          "modules": "012",
+          "background": 5,
+          "tmpColor": "4A4A4A",
+          "tmpSize": 16,
+          "cityColor": "4A4A4A",
+          "citySize": 16,
+          "aqiSize": 16,
+          "weatherIconSize": 24,
+          "alertIconSize": 18,
+          "padding": "10px 10px 10px 10px",
+          "shadow": "1",
+          "language": "auto",
+          "borderRadius": 5,
+          "fixed": "false",
+          "vertical": "middle",
+          "horizontal": "center",
+          "key": "2784dd3fcb1e4f0f9a9b579bf69641f2"
+        }
+      }
+    </script>
+    <script defer src="https://widget.qweather.net/simple/static/js/he-simple-common.js?v=2.0"></script> 
+    
+</header>
+        <!-- 内容区域 -->
+        
+<!-- prismjs 代码高亮 -->
+
+
+
+
+<div class="bg-dark-floor" style="position: fixed;left: 0;top: 0;width: 100%;height: 100%;z-index: -1;"></div>
+
+
+  <!-- 文章详情页顶部图片和标题 -->
+
+
+
+
+<div class="post-detail-header" id="thumbnail_canvas" style="background-repeat: no-repeat; background-size: cover; 
+  background-position: center center;position: relative;background-image:url('https://pic4.zhimg.com/80/v2-83ea273b88e119d9615aed0d89aad4ab_1440w.webp')">
+  <div class="post-detail-header-mask"></div>
+  <canvas id="header_canvas"style="position:absolute;bottom:0;pointer-events:none;"></canvas>
+  
+  <div class="post-detail-header_info-box">
+    <div class="title-box">
+      <span class="title">
+        一文详细解析ThreadPoolExector线程池
+      </span>
+    </div>
+    
+    
+      
+        <span class="post-detail-header_date">
+          <i class="fas fa-calendar"></i> Published in：2026-03-02 |
+        </span>
+      
+
+      
+
+      
+    
+  </div>
+  
+  
+    <script defer src="/js/bubble/bubble.js"></script>
+  
+</div>
+
+
+
+
+
+<div class="post-detail-content post-row" 
+  style="padding-top: 0px;">
+  <div class="main-content">
+    <article class="post post-detail">
+      <div class="post-content">
+        <p>最近的项目里用到了线程池来处理“生产者-消费者”模式，今天主要是来系统学习一下线程池的概念以及如何自己手搓一个简易的线程池。加深一下对线程池使用策略的理解和应用。</p>
+<h1 id="一、JDK自带的ThreadPoolExecutor"><a href="#一、JDK自带的ThreadPoolExecutor" class="headerlink" title="一、JDK自带的ThreadPoolExecutor"></a>一、JDK自带的ThreadPoolExecutor</h1><p>在Java的SDK中，已经帮我们集成好了相应的线程池ThreadPoolExecutor。</p>
+<ul>
+<li><p>先看一下对应的继承树</p>
+<ul>
+<li><p>简略图<br>  <img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/5aab6928ee3d46c19cdbec68018c1c7a.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/5aab6928ee3d46c19cdbec68018c1c7a.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"></p>
+</li>
+<li><p>UML图<br>  <img src="https://i-blog.csdnimg.cn/direct/ea3eae66fe254adaae6e357f4006106a.png" class="lazyload placeholder" data-srcset="https://i-blog.csdnimg.cn/direct/ea3eae66fe254adaae6e357f4006106a.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"></p>
+</li>
+</ul>
+</li>
+<li><p>再看看对应的构造方法<br>  <img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/8b370f4fde224a139cc6fd8a0e6a3fc3.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/8b370f4fde224a139cc6fd8a0e6a3fc3.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"></p>
+<p>  如果不想看繁琐的英文，参数含义也可以看下面这张表<br>  以下是线程池核心参数的详细说明表格：</p>
+</li>
+</ul>
+<h2 id="线程池核心参数说明"><a href="#线程池核心参数说明" class="headerlink" title="线程池核心参数说明"></a>线程池核心参数说明</h2><table>
+<thead>
+<tr>
+<th align="center">参数名</th>
+<th align="left"><center>含义</center></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>corePoolSize</strong></td>
+<td align="left">核心线程数，池中常驻的线程数量（包括空闲线程）。当活动线程数小于该值时，直接创建新线程；否则任务进入工作队列等待。</td>
+</tr>
+<tr>
+<td align="center"><strong>maximumPoolSize</strong></td>
+<td align="left">池中允许的最大线程数。当核心线程和工作队列满载且活动线程数小于该值时，创建新线程；超过则触发饱和策略。</td>
+</tr>
+<tr>
+<td align="center"><strong>keepAliveTime</strong></td>
+<td align="left">非核心线程的空闲存活时间。当线程数超过corePoolSize时，空闲线程在指定时间后终止，直到恢复至核心线程数。</td>
+</tr>
+<tr>
+<td align="center"><strong>unit</strong></td>
+<td align="left">keepAliveTime的时间单位（如秒、毫秒）。</td>
+</tr>
+<tr>
+<td align="center"><strong>workQueue</strong></td>
+<td align="left">存储待执行任务的阻塞队列。仅保存通过execute提交的Runnable任务，每个线程从中获取任务顺序执行。</td>
+</tr>
+<tr>
+<td align="center"><strong>handler</strong></td>
+<td align="left">饱和策略。当线程数达到maximumPoolSize且工作队列满载时，处理新任务的策略（如拒绝、丢弃等）。</td>
+</tr>
+</tbody></table>
+<h1 id="二、线程池的策略"><a href="#二、线程池的策略" class="headerlink" title="二、线程池的策略"></a>二、线程池的策略</h1><p><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/6db77b4d010d4c68ae6cdb8246f3b356.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/6db77b4d010d4c68ae6cdb8246f3b356.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"></p>
+<h2 id="2-1-常见的任务队列类型"><a href="#2-1-常见的任务队列类型" class="headerlink" title="2.1 常见的任务队列类型"></a>2.1 常见的任务队列类型</h2><p>线程池的任务队列用于存储待执行的任务，其类型直接影响线程池的调度行为（如是否创建新线程、任务是否会被拒绝等）。常见队列类型如下：</p>
+<h3 id="1-SynchronousQueue（直接提交队列）"><a href="#1-SynchronousQueue（直接提交队列）" class="headerlink" title="1. SynchronousQueue（直接提交队列）"></a>1. SynchronousQueue（直接提交队列）</h3><ul>
+<li>特点：不存储任务，仅作为 “传递者”。每次提交任务时，必须有线程立即接收并执行（否则任务会被拒绝，除非线程池能创建新线程）。</li>
+<li>适用场景：任务处理速度快、任务数量不稳定（需要灵活创建线程）的场景。例如 CachedThreadPool（缓存线程池）默认使用此队列，配合 maximumPoolSize&#x3D;Integer.MAX_VALUE，可快速创建线程处理突发任务。</li>
+<li>注意：若线程池所有线程都在忙碌，且无法创建新线程（达到 maximumPoolSize），新任务会被拒绝。</li>
+</ul>
+<h3 id="2-ArrayBlockingQueue（有界数组队列）"><a href="#2-ArrayBlockingQueue（有界数组队列）" class="headerlink" title="2. ArrayBlockingQueue（有界数组队列）"></a>2. ArrayBlockingQueue（有界数组队列）</h3><ul>
+<li>特点：基于数组的有界阻塞队列，必须指定固定容量（如 new ArrayBlockingQueue(100)）。任务按 FIFO 排序。</li>
+<li>调度逻辑：当核心线程满后，新任务会进入队列；队列满后，会创建非核心线程（直到达到 maximumPoolSize）；若仍满，则执行拒绝策略。</li>
+<li>适用场景：需要控制队列大小（避免内存溢出）、任务量可预估的场景。例如核心线程数固定、任务处理时间稳定的业务。</li>
+<li>优点：有界性可避免资源耗尽，适合对系统稳定性要求高的场景。</li>
+</ul>
+<h3 id="3-LinkedBlockingQueue（无界-有界链表队列）"><a href="#3-LinkedBlockingQueue（无界-有界链表队列）" class="headerlink" title="3. LinkedBlockingQueue（无界 &#x2F; 有界链表队列）"></a>3. LinkedBlockingQueue（无界 &#x2F; 有界链表队列）</h3><ul>
+<li>特点：基于链表的阻塞队列，默认是无界队列（容量为 Integer.MAX_VALUE），也可手动指定容量（有界模式）。任务按 FIFO 排序。</li>
+<li>调度逻辑：若为无界队列，当核心线程满后，新任务会一直进入队列，不会创建非核心线程（maximumPoolSize 失效），直到内存溢出。</li>
+<li>适用场景：任务处理时间短、任务量稳定（不会暴涨）的场景。例如 FixedThreadPool（固定线程池）默认使用无界的 LinkedBlockingQueue，确保核心线程稳定复用。</li>
+<li>注意：无界队列可能因任务堆积导致 OOM，需谨慎使用。</li>
+</ul>
+<h3 id="4-PriorityBlockingQueue（优先队列）"><a href="#4-PriorityBlockingQueue（优先队列）" class="headerlink" title="4. PriorityBlockingQueue（优先队列）"></a>4. PriorityBlockingQueue（优先队列）</h3><ul>
+<li>特点：无界阻塞队列，任务会按优先级排序（而非 FIFO），需任务实现 Comparable 接口或通过构造器指定比较器。</li>
+<li>适用场景：需要按优先级处理任务的场景（如紧急任务优先执行）。例如调度系统中，高优先级任务需先处理。</li>
+<li>注意：无界性可能导致 OOM，且优先级排序会增加任务入队 &#x2F; 出队的开销。</li>
+</ul>
+<h3 id="5-DelayedWorkQueue（延迟队列）"><a href="#5-DelayedWorkQueue（延迟队列）" class="headerlink" title="5. DelayedWorkQueue（延迟队列）"></a>5. DelayedWorkQueue（延迟队列）</h3><ul>
+<li>特点：ScheduledThreadPoolExecutor（定时任务线程池）的默认队列，任务会在指定延迟时间后才被执行，按延迟时间排序（延迟短的先执行）。</li>
+<li>适用场景：定时任务、延迟任务（如定时重试、定时清理）。例如 ScheduledThreadPool 中调度 schedule() 或 scheduleAtFixedRate() 任务。</li>
+</ul>
+<h2 id="2-2-常见的拒绝策略"><a href="#2-2-常见的拒绝策略" class="headerlink" title="2.2 常见的拒绝策略"></a>2.2 常见的拒绝策略</h2><p>当线程池无法接收新任务时（如线程池已关闭、任务队列满且线程数达 maximumPoolSize），会触发拒绝策略。Java 内置 4 种拒绝策略（均实现 RejectedExecutionHandler 接口）：</p>
+<h3 id="1-AbortPolicy（默认策略）"><a href="#1-AbortPolicy（默认策略）" class="headerlink" title="1. AbortPolicy（默认策略）"></a>1. AbortPolicy（默认策略）</h3><ul>
+<li>行为：直接抛出 RejectedExecutionException 异常，中断任务提交流程。</li>
+<li>适用场景：需要明确感知任务被拒绝的场景（如核心业务，任务丢失会导致严重问题），通过异常可及时报警或处理。</li>
+<li>注意：会中断调用者的执行流程，需捕获异常处理。</li>
+</ul>
+<h3 id="2-CallerRunsPolicy（调用者运行策略）"><a href="#2-CallerRunsPolicy（调用者运行策略）" class="headerlink" title="2. CallerRunsPolicy（调用者运行策略）"></a>2. CallerRunsPolicy（调用者运行策略）</h3><ul>
+<li>行为：让提交任务的线程（调用者线程）自己执行该任务，而非由线程池线程执行。</li>
+<li>作用：减缓任务提交速度（调用者线程被占用），给线程池时间处理现有任务，起到 “缓冲” 作用，避免任务丢失。</li>
+<li>适用场景：任务量不大、不希望任务丢失的场景（如非核心业务，允许一定延迟）。</li>
+</ul>
+<h3 id="3-DiscardPolicy（丢弃策略）"><a href="#3-DiscardPolicy（丢弃策略）" class="headerlink" title="3. DiscardPolicy（丢弃策略）"></a>3. DiscardPolicy（丢弃策略）</h3><ul>
+<li>行为：直接丢弃无法处理的新任务，不做任何处理，也不抛出异常。</li>
+<li>适用场景：任务无关紧要（如日志收集、统计上报），丢失少量任务不影响系统核心功能。</li>
+<li>风险：任务丢失无感知，需谨慎使用。</li>
+</ul>
+<h3 id="4-DiscardOldestPolicy（丢弃最旧任务策略）"><a href="#4-DiscardOldestPolicy（丢弃最旧任务策略）" class="headerlink" title="4. DiscardOldestPolicy（丢弃最旧任务策略）"></a>4. DiscardOldestPolicy（丢弃最旧任务策略）</h3><ul>
+<li>行为：丢弃任务队列中最旧的未处理任务（队列头部的任务），然后尝试将新任务加入队列。</li>
+<li>适用场景：需要处理 “最新任务” 的场景（如实时数据处理），旧任务可被丢弃。</li>
+<li>注意：可能会丢弃正在等待的重要任务，需结合业务判断。<blockquote>
+<ul>
+<li>队列选择：根据任务特性（是否有界、是否需要优先级、处理速度）选择，优先用有界队列（如 ArrayBlockingQueue）避免 OOM。</li>
+<li>拒绝策略：根据任务重要性选择，核心任务用 AbortPolicy（及时感知），非核心任务用 CallerRunsPolicy 或 DiscardOldestPolicy（避免丢失或缓冲）。实际使用中，也可自定义拒绝策略（实现 RejectedExecutionHandler 接口），例如将任务持久化到数据库或消息队列，后续重试。</li>
+</ul>
+</blockquote>
+</li>
+</ul>
+<h1 id="三、介绍一下Runnable、Callable和Future"><a href="#三、介绍一下Runnable、Callable和Future" class="headerlink" title="三、介绍一下Runnable、Callable和Future"></a>三、介绍一下Runnable、Callable和Future</h1><p>其实提到线程，就不得不提到Runnable、Callable和Future这三者，因为线程里执行的任务类型就是Runnable或Callable，异步返回的结果就是Future。</p>
+<blockquote>
+<ul>
+<li>Runnable 和 Callable 是任务定义接口，前者无返回值 &#x2F; 不抛 checked 异常，后者有返回值 &#x2F; 可抛异常。</li>
+<li>Future 是结果管理接口，不定义任务，而是用于控制异步任务（获取结果、取消任务等），通常与 Callable 配合使用。</li>
+<li>线程池的 execute() 仅接收 Runnable，submit() 可接收两者并返回 Future，是异步编程的核心工具。</li>
+</ul>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th align="center">特性</th>
+<th align="left"><center><code>Runnable</code></center></th>
+<th align="left"><center><code>Callable&lt;V&gt;</code></center></th>
+<th align="left"><center><code>Future&lt;V&gt;</code></center></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>接口定义</strong></td>
+<td align="left">函数式接口：<br><code>@FunctionalInterface</code><br><code>public interface Runnable &#123;</code><br><code> void run();</code><br><code>&#125;</code></td>
+<td align="left">函数式接口：<br><code>@FunctionalInterface</code><br><code>public interface Callable&lt;V&gt; &#123;</code><br><code> V call() throws Exception;</code><br><code>&#125;</code></td>
+<td align="left">接口：<br><code>public interface Future&lt;V&gt; &#123; ... &#125;</code>（定义异步计算结果）</td>
+</tr>
+<tr>
+<td align="center"><strong>返回值</strong></td>
+<td align="left">无（<code>void</code>）</td>
+<td align="left">泛型 <code>V</code>（返回任务结果）</td>
+<td align="left">不直接产生值，通过 <code>get()</code> 获取关联 <code>Callable</code> 的返回值（或 <code>null</code> 若关联 <code>Runnable</code>）</td>
+</tr>
+<tr>
+<td align="center"><strong>异常处理</strong></td>
+<td align="left">仅能抛出 <code>RuntimeException</code>（<code>run()</code> 无 <code>throws</code> 声明）</td>
+<td align="left">可抛出任意异常（包括受检异常，<code>call()</code> 声明 <code>throws Exception</code>）</td>
+<td align="left">本身不抛出异常，但 <code>get()</code> 可能抛出 <code>ExecutionException</code>（包装 <code>Callable</code> 异常）或 <code>InterruptedException</code></td>
+</tr>
+<tr>
+<td align="center"><strong>核心作用</strong></td>
+<td align="left">定义无结果的任务（如日志打印）</td>
+<td align="left">定义有结果的任务（如数据库查询）</td>
+<td align="left">管理异步计算结果（获取值、取消任务、判断状态）</td>
+</tr>
+<tr>
+<td align="center"><strong>是否可取消任务</strong></td>
+<td align="left">否（无内置取消机制）</td>
+<td align="left">否（通常配合 <code>Future.cancel()</code> 实现）</td>
+<td align="left">是（提供 <code>cancel(boolean mayInterruptIfRunning)</code> 方法）</td>
+</tr>
+<tr>
+<td align="center"><strong>与线程池配合</strong></td>
+<td align="left">通过 <code>execute(Runnable)</code> 提交（无返回值）或 <code>submit(Runnable)</code>（返回 <code>Future&lt;?&gt;</code>，<code>get()</code> 为 <code>null</code>）</td>
+<td align="left">仅能通过 <code>submit(Callable)</code> 提交，返回 <code>Future&lt;V&gt;</code></td>
+<td align="left">线程池 <code>submit()</code> 的返回值，作为获取结果的入口</td>
+</tr>
+<tr>
+<td align="center"><strong>典型使用场景</strong></td>
+<td align="left">无需返回结果的异步操作</td>
+<td align="left">需返回结果的异步计算（如并发查询）</td>
+<td align="left">配合 <code>Callable</code> 管理异步任务（如监控子任务状态、超时取消）</td>
+</tr>
+</tbody></table>
+<h1 id="四、手搓简易线程池"><a href="#四、手搓简易线程池" class="headerlink" title="四、手搓简易线程池"></a>四、手搓简易线程池</h1><h2 id="4-1-代码"><a href="#4-1-代码" class="headerlink" title="4.1 代码"></a>4.1 代码</h2><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br><span class="line">310</span><br><span class="line">311</span><br><span class="line">312</span><br><span class="line">313</span><br><span class="line">314</span><br><span class="line">315</span><br><span class="line">316</span><br><span class="line">317</span><br><span class="line">318</span><br><span class="line">319</span><br><span class="line">320</span><br><span class="line">321</span><br><span class="line">322</span><br><span class="line">323</span><br><span class="line">324</span><br><span class="line">325</span><br><span class="line">326</span><br><span class="line">327</span><br><span class="line">328</span><br><span class="line">329</span><br><span class="line">330</span><br><span class="line">331</span><br><span class="line">332</span><br><span class="line">333</span><br><span class="line">334</span><br><span class="line">335</span><br><span class="line">336</span><br><span class="line">337</span><br><span class="line">338</span><br><span class="line">339</span><br><span class="line">340</span><br><span class="line">341</span><br><span class="line">342</span><br><span class="line">343</span><br><span class="line">344</span><br><span class="line">345</span><br><span class="line">346</span><br><span class="line">347</span><br><span class="line">348</span><br><span class="line">349</span><br><span class="line">350</span><br><span class="line">351</span><br><span class="line">352</span><br><span class="line">353</span><br><span class="line">354</span><br><span class="line">355</span><br><span class="line">356</span><br><span class="line">357</span><br><span class="line">358</span><br><span class="line">359</span><br><span class="line">360</span><br><span class="line">361</span><br><span class="line">362</span><br><span class="line">363</span><br><span class="line">364</span><br><span class="line">365</span><br><span class="line">366</span><br><span class="line">367</span><br><span class="line">368</span><br><span class="line">369</span><br><span class="line">370</span><br><span class="line">371</span><br><span class="line">372</span><br><span class="line">373</span><br><span class="line">374</span><br><span class="line">375</span><br><span class="line">376</span><br><span class="line">377</span><br><span class="line">378</span><br><span class="line">379</span><br><span class="line">380</span><br><span class="line">381</span><br><span class="line">382</span><br><span class="line">383</span><br><span class="line">384</span><br><span class="line">385</span><br><span class="line">386</span><br><span class="line">387</span><br><span class="line">388</span><br><span class="line">389</span><br><span class="line">390</span><br><span class="line">391</span><br><span class="line">392</span><br><span class="line">393</span><br><span class="line">394</span><br><span class="line">395</span><br><span class="line">396</span><br><span class="line">397</span><br><span class="line">398</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.demo.phc.multi_thread</span><br><span class="line"> </span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.BlockingQueue</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.LinkedBlockingQueue</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.TimeUnit</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.locks.ReentrantLock</span><br><span class="line"> </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 线程池状态</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> RUNNING = <span class="number">0</span>    <span class="comment">// 运行中</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> SHUTDOWN = <span class="number">1</span>   <span class="comment">// 关闭中</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> TERMINATED = <span class="number">2</span> <span class="comment">// 已终止</span></span><br><span class="line"> </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 自定义线程池实现</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> corePoolSize 核心线程数</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> maximumPoolSize 最大线程数</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> keepAliveTime 非核心线程空闲存活时间</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> unit 时间单位</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> workQueue 任务队列</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> rejectHandler 拒绝策略</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ThreadPool</span>(</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> corePoolSize: <span class="built_in">Int</span>,</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> maximumPoolSize: <span class="built_in">Int</span>,</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> keepAliveTime: <span class="built_in">Long</span>,</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> unit: TimeUnit,</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> workQueue: BlockingQueue&lt;Runnable&gt; = LinkedBlockingQueue(),</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> rejectHandler: RejectHandler = DefaultRejectHandler()</span><br><span class="line">) &#123;</span><br><span class="line">    <span class="comment">// 线程池状态锁</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> lock = ReentrantLock()</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 状态条件变量</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> termination = lock.newCondition()</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 当前状态</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> state = RUNNING</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 工作线程集合</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> workers = mutableListOf&lt;Worker&gt;()</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">init</span> &#123;</span><br><span class="line">        require(corePoolSize &gt;= <span class="number">0</span>) &#123; <span class="string">&quot;核心线程数不能为负数&quot;</span> &#125;</span><br><span class="line">        require(maximumPoolSize &gt;= corePoolSize) &#123; <span class="string">&quot;最大线程数不能小于核心线程数&quot;</span> &#125;</span><br><span class="line">        require(keepAliveTime &gt;= <span class="number">0</span>) &#123; <span class="string">&quot;存活时间不能为负数&quot;</span> &#125;</span><br><span class="line"> </span><br><span class="line">        <span class="comment">// 初始化核心线程</span></span><br><span class="line">        <span class="keyword">for</span> (i <span class="keyword">in</span> <span class="number">0</span> until corePoolSize) &#123;</span><br><span class="line">            addWorker(<span class="literal">null</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 提交任务到线程池</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">execute</span><span class="params">(task: <span class="type">Runnable</span>)</span></span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (task == <span class="literal">null</span>) <span class="keyword">throw</span> NullPointerException(<span class="string">&quot;任务不能为null&quot;</span>)</span><br><span class="line"> </span><br><span class="line"><span class="comment">//        println(&quot;线程 $&#123;Thread.currentThread().name&#125; 准备获取锁&quot;)</span></span><br><span class="line">        lock.lock()</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line"><span class="comment">//            println(&quot;线程 $&#123;Thread.currentThread().name&#125; 成功获取锁，进入临界区&quot;)</span></span><br><span class="line">            <span class="comment">// 线程池已关闭，执行拒绝策略</span></span><br><span class="line">            <span class="keyword">if</span> (state != RUNNING) &#123;</span><br><span class="line">                rejectHandler.rejectedExecution(task, <span class="keyword">this</span>)</span><br><span class="line">                <span class="keyword">return</span></span><br><span class="line">            &#125;</span><br><span class="line"> </span><br><span class="line">            <span class="comment">// 1. 如果当前线程数小于核心线程数，创建新线程执行任务</span></span><br><span class="line">            <span class="keyword">if</span> (workers.size &lt; corePoolSize) &#123;</span><br><span class="line">                <span class="keyword">if</span> (addWorker(task)) <span class="keyword">return</span></span><br><span class="line">            &#125;</span><br><span class="line"> </span><br><span class="line">            <span class="comment">// 2. 核心线程已满，尝试加入任务队列</span></span><br><span class="line">            <span class="keyword">if</span> (workQueue.offer(task)) <span class="keyword">return</span></span><br><span class="line"> </span><br><span class="line">            <span class="comment">// 3. 队列已满，尝试创建非核心线程</span></span><br><span class="line">            <span class="keyword">if</span> (workers.size &lt; maximumPoolSize &amp;&amp; addWorker(task)) <span class="keyword">return</span></span><br><span class="line"> </span><br><span class="line">            <span class="comment">// 4. 所有条件都不满足，执行拒绝策略</span></span><br><span class="line">            rejectHandler.rejectedExecution(task, <span class="keyword">this</span>)</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlock()</span><br><span class="line"><span class="comment">//            println(&quot;线程 $&#123;Thread.currentThread().name&#125; 释放锁&quot;)</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 添加工作线程</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> firstTask 线程首次执行的任务</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 是否添加成功</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">addWorker</span><span class="params">(firstTask: <span class="type">Runnable</span>?)</span></span>: <span class="built_in">Boolean</span> &#123;</span><br><span class="line">        lock.lock()</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 检查线程池状态</span></span><br><span class="line">            <span class="keyword">if</span> (state != RUNNING) <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line"> </span><br><span class="line">            <span class="comment">// 创建工作线程</span></span><br><span class="line">            <span class="keyword">val</span> worker = Worker(firstTask)</span><br><span class="line">            <span class="keyword">val</span> thread = Thread(worker, <span class="string">&quot;ThreadPool-Worker-<span class="subst">$&#123;workers.size&#125;</span>&quot;</span>)</span><br><span class="line">            worker.thread = thread</span><br><span class="line">            workers.add(worker)</span><br><span class="line">            thread.start()</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlock()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 关闭线程池，不再接受新任务，但会执行完已提交的任务</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">shutdown</span><span class="params">()</span></span> &#123;</span><br><span class="line">        lock.lock()</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (state != RUNNING) <span class="keyword">return</span></span><br><span class="line"> </span><br><span class="line">            state = SHUTDOWN</span><br><span class="line">            <span class="comment">// 中断空闲线程</span></span><br><span class="line">            interruptIdleWorkers()</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlock()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 立即关闭线程池，尝试中断所有线程，未执行的任务将被丢弃</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">shutdownNow</span><span class="params">()</span></span>: List&lt;Runnable&gt; &#123;</span><br><span class="line">        lock.lock()</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (state &gt;= SHUTDOWN) <span class="keyword">return</span> emptyList()</span><br><span class="line"> </span><br><span class="line">            state = TERMINATED</span><br><span class="line">            <span class="comment">// 中断所有线程</span></span><br><span class="line">            interruptAllWorkers()</span><br><span class="line"> </span><br><span class="line">            <span class="comment">// 收集未执行的任务</span></span><br><span class="line">            <span class="keyword">val</span> remainingTasks = mutableListOf&lt;Runnable&gt;()</span><br><span class="line">            workQueue.drainTo(remainingTasks)</span><br><span class="line">            <span class="keyword">return</span> remainingTasks</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlock()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 等待线程池终止</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">awaitTermination</span><span class="params">(timeout: <span class="type">Long</span>, unit: <span class="type">TimeUnit</span>)</span></span>: <span class="built_in">Boolean</span> &#123;</span><br><span class="line">        <span class="keyword">var</span> nanos = unit.toNanos(timeout)</span><br><span class="line">        lock.lock()</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">while</span> (state != TERMINATED) &#123;</span><br><span class="line">                <span class="keyword">if</span> (nanos &lt;= <span class="number">0</span>) <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">                nanos = termination.awaitNanos(nanos)</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlock()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 中断所有空闲线程</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">interruptIdleWorkers</span><span class="params">()</span></span> &#123;</span><br><span class="line">        workers.forEach &#123; it.interruptIfIdle() &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 中断所有线程</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">interruptAllWorkers</span><span class="params">()</span></span> &#123;</span><br><span class="line">        workers.forEach &#123; it.interrupt() &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 工作线程类</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">inner</span> <span class="keyword">class</span> <span class="title class_">Worker</span>(<span class="keyword">private</span> <span class="keyword">var</span> firstTask: Runnable?) : Runnable &#123;</span><br><span class="line">        <span class="keyword">var</span> thread: Thread? = <span class="literal">null</span></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">var</span> isIdle = <span class="literal">false</span></span><br><span class="line"> </span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">run</span><span class="params">()</span></span> &#123;</span><br><span class="line">            <span class="keyword">var</span> currentTask: Runnable? = firstTask</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="comment">// 循环获取任务执行</span></span><br><span class="line">                <span class="keyword">while</span> (currentTask != <span class="literal">null</span> || getTask()?.also &#123; currentTask = it &#125; != <span class="literal">null</span>) &#123;</span><br><span class="line">                    <span class="keyword">try</span> &#123;</span><br><span class="line">                        isIdle = <span class="literal">false</span></span><br><span class="line">                        currentTask?.run()</span><br><span class="line">                    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                        currentTask = <span class="literal">null</span></span><br><span class="line">                        isIdle = <span class="literal">true</span></span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                <span class="comment">// 线程退出时清理</span></span><br><span class="line">                processWorkerExit(<span class="keyword">this</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * 从队列获取任务</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">getTask</span><span class="params">()</span></span>: Runnable? &#123;</span><br><span class="line">            <span class="keyword">var</span> timedOut = <span class="literal">false</span></span><br><span class="line"> </span><br><span class="line">            <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">                lock.lock()</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    <span class="comment">// 线程池已关闭且队列为空，返回null让线程退出</span></span><br><span class="line">                    <span class="keyword">if</span> (state &gt;= SHUTDOWN &amp;&amp; workQueue.isEmpty()) &#123;</span><br><span class="line">                        <span class="keyword">return</span> <span class="literal">null</span></span><br><span class="line">                    &#125;</span><br><span class="line"> </span><br><span class="line">                    <span class="comment">// 判断是否需要超时等待（非核心线程或已超时）</span></span><br><span class="line">                    <span class="keyword">val</span> needTimeout = workers.size &gt; corePoolSize || timedOut</span><br><span class="line"> </span><br><span class="line">                    <span class="comment">// 释放锁后再执行阻塞操作，避免锁被长期占用</span></span><br><span class="line">                    <span class="keyword">if</span> (needTimeout) &#123;</span><br><span class="line">                        <span class="comment">// 非核心线程：超时等待任务</span></span><br><span class="line">                        lock.unlock() <span class="comment">// 先释放锁</span></span><br><span class="line">                        <span class="keyword">val</span> task = workQueue.poll(keepAliveTime, unit) <span class="comment">// 阻塞等待（无锁）</span></span><br><span class="line">                        lock.lock() <span class="comment">// 重新获取锁</span></span><br><span class="line">                        <span class="keyword">if</span> (task == <span class="literal">null</span>) &#123;</span><br><span class="line">                            timedOut = <span class="literal">true</span></span><br><span class="line">                            <span class="keyword">continue</span> <span class="comment">// 超时未获取到任务，继续循环检查</span></span><br><span class="line">                        &#125;</span><br><span class="line">                        <span class="keyword">return</span> task</span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        <span class="comment">// 核心线程：一直等待任务</span></span><br><span class="line">                        lock.unlock() <span class="comment">// 先释放锁</span></span><br><span class="line">                        <span class="keyword">val</span> task = workQueue.take() <span class="comment">// 阻塞等待（无锁）</span></span><br><span class="line">                        lock.lock() <span class="comment">// 重新获取锁</span></span><br><span class="line">                        <span class="keyword">return</span> task</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">catch</span> (e: InterruptedException) &#123;</span><br><span class="line">                    <span class="comment">// 线程被中断时，重新检查状态</span></span><br><span class="line">                    lock.lock()</span><br><span class="line">                    <span class="keyword">try</span> &#123;</span><br><span class="line">                        <span class="keyword">if</span> (state &gt;= SHUTDOWN) &#123;</span><br><span class="line">                            <span class="keyword">return</span> <span class="literal">null</span> <span class="comment">// 线程池已关闭，退出</span></span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                        lock.unlock()</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                    <span class="comment">// 确保锁最终被释放（防止异常导致锁泄漏）</span></span><br><span class="line">                    <span class="keyword">if</span> (lock.isHeldByCurrentThread) &#123;</span><br><span class="line">                        lock.unlock()</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * 中断空闲线程</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="function"><span class="keyword">fun</span> <span class="title">interruptIfIdle</span><span class="params">()</span></span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (isIdle) &#123;</span><br><span class="line">                thread?.interrupt()</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * 中断线程</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="function"><span class="keyword">fun</span> <span class="title">interrupt</span><span class="params">()</span></span> &#123;</span><br><span class="line">            thread?.interrupt()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 处理工作线程退出</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">processWorkerExit</span><span class="params">(worker: <span class="type">Worker</span>)</span></span> &#123;</span><br><span class="line">        lock.lock()</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            workers.remove(worker)</span><br><span class="line"> </span><br><span class="line">            <span class="comment">// 如果线程池已关闭且没有工作线程了，标记为已终止</span></span><br><span class="line">            <span class="keyword">if</span> (state &gt;= SHUTDOWN &amp;&amp; workers.isEmpty()) &#123;</span><br><span class="line">                state = TERMINATED</span><br><span class="line">                termination.signalAll()</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 如果线程池仍在运行且线程数小于核心线程数，补充新线程</span></span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (state == RUNNING &amp;&amp; workers.size &lt; corePoolSize) &#123;</span><br><span class="line">                addWorker(<span class="literal">null</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlock()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取当前线程数</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">getPoolSize</span><span class="params">()</span></span>: <span class="built_in">Int</span> &#123;</span><br><span class="line">        lock.lock()</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">try</span> &#123;</span><br><span class="line">            workers.size</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlock()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取队列中的任务数</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">getQueueSize</span><span class="params">()</span></span>: <span class="built_in">Int</span> = workQueue.size</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 拒绝策略接口</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">interface</span> <span class="title class_">RejectHandler</span> &#123;</span><br><span class="line">        <span class="function"><span class="keyword">fun</span> <span class="title">rejectedExecution</span><span class="params">(task: <span class="type">Runnable</span>, threadPool: <span class="type">ThreadPool</span>)</span></span></span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 默认拒绝策略：抛出异常</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">DefaultRejectHandler</span> : <span class="type">RejectHandler</span> &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">rejectedExecution</span><span class="params">(task: <span class="type">Runnable</span>, threadPool: <span class="type">ThreadPool</span>)</span></span> &#123;</span><br><span class="line">            <span class="keyword">throw</span> RejectedExecutionException(<span class="string">&quot;任务被拒绝，线程池已达最大容量&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 丢弃任务的拒绝策略</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">DiscardPolicy</span> : <span class="type">RejectHandler</span> &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">rejectedExecution</span><span class="params">(task: <span class="type">Runnable</span>, threadPool: <span class="type">ThreadPool</span>)</span></span> &#123;</span><br><span class="line">            <span class="comment">// 什么也不做，直接丢弃任务</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 由调用者线程执行任务的拒绝策略</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">CallerRunsPolicy</span> : <span class="type">RejectHandler</span> &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">rejectedExecution</span><span class="params">(task: <span class="type">Runnable</span>, threadPool: <span class="type">ThreadPool</span>)</span></span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (threadPool.state == RUNNING) &#123;</span><br><span class="line">                <span class="comment">// 由提交任务的线程执行</span></span><br><span class="line">                task.run()</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 任务拒绝异常</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RejectedExecutionException</span>(message: String) : RuntimeException(message)</span><br><span class="line"> </span><br><span class="line"><span class="comment">// 测试代码</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// 创建线程池：核心2，最大4，队列容量2，非核心线程存活3秒</span></span><br><span class="line">    <span class="keyword">val</span> threadPool = ThreadPool(</span><br><span class="line">        corePoolSize = <span class="number">2</span>,</span><br><span class="line">        maximumPoolSize = <span class="number">4</span>,</span><br><span class="line">        keepAliveTime = <span class="number">3</span>,</span><br><span class="line">        unit = TimeUnit.SECONDS,</span><br><span class="line">        workQueue = LinkedBlockingQueue(<span class="number">2</span>),</span><br><span class="line">        rejectHandler = ThreadPool.CallerRunsPolicy()</span><br><span class="line">    )</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 提交8个任务</span></span><br><span class="line">    <span class="keyword">for</span> (i <span class="keyword">in</span> <span class="number">1.</span><span class="number">.8</span>) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            threadPool.execute &#123;</span><br><span class="line">                println(<span class="string">&quot;任务<span class="variable">$i</span> 开始执行，线程: <span class="subst">$&#123;Thread.currentThread().name&#125;</span>&quot;</span>)</span><br><span class="line">                Thread.sleep(<span class="number">1000</span>)</span><br><span class="line">                println(<span class="string">&quot;任务<span class="variable">$i</span> 执行完毕&quot;</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (e: RejectedExecutionException) &#123;</span><br><span class="line">            println(<span class="string">&quot;任务<span class="variable">$i</span> 被拒绝：<span class="subst">$&#123;e.message&#125;</span>&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    println(<span class="string">&quot;当前线程数：<span class="subst">$&#123;threadPool.getPoolSize()&#125;</span>&quot;</span>)</span><br><span class="line">    println(<span class="string">&quot;队列任务数：<span class="subst">$&#123;threadPool.getQueueSize()&#125;</span>&quot;</span>)</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 等待任务执行</span></span><br><span class="line">    Thread.sleep(<span class="number">2000</span>)</span><br><span class="line">    println(<span class="string">&quot;2秒后，当前线程数：<span class="subst">$&#123;threadPool.getPoolSize()&#125;</span>&quot;</span>)</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 关闭线程池</span></span><br><span class="line">    threadPool.shutdown()</span><br><span class="line">    <span class="comment">// 等待线程池终止</span></span><br><span class="line">    threadPool.awaitTermination(<span class="number">5</span>, TimeUnit.SECONDS)</span><br><span class="line">    println(<span class="string">&quot;线程池已终止&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"> </span><br></pre></td></tr></table></figure>
+<h2 id="运行结果"><a href="#运行结果" class="headerlink" title="运行结果"></a>运行结果</h2><p><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/a9c91418be82432294e4d44dc3eae093.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/a9c91418be82432294e4d44dc3eae093.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"></p>
+
+      </div>
+      <div class="post-tags-categories">
+        
+        <div class="tags">
+          
+            <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" class="">
+              线程池
+            </a>
+          
+        </div>
+        
+      </div>
+      
+        <div class="copyright">
+  <ul class="post-copyright">
+    <li class="post-copyright-author">
+    <strong>author:  </strong>小超同学</a>
+    </li>
+    <li class="post-copyright-link">
+    <strong>link:  </strong>
+    <a href="/2026/03/02/一文详细解析ThreadPoolExector线程池/" target="_blank" title="一文详细解析ThreadPoolExector线程池">http://example.com/2026/03/02/一文详细解析ThreadPoolExector线程池/</a>
+    </li>
+    <li class="post-copyright-license">
+      <strong>Copyright notice:   </strong>
+      All articles on this website, unless otherwise stated, adopt <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+      reprint policy. If reproduced, please indicate source!
+    </li>
+  </ul>
+<div>
+      
+    </article>
+    <!-- 上一篇文章和下一篇文章 -->
+    
+      <!-- 文章详情页的上一页和下一页 -->
+<div class="post-nav">
+
+
+
+  
+  <div class="post-nav-prev post-nav-item">
+    <div class="post-nav-img" style="background-size: cover; 
+      background-position: center center;">
+      <img class="lazyload lazyload placeholder" src="https://pic4.zhimg.com/80/v2-83ea273b88e119d9615aed0d89aad4ab_1440w.webp" class="lazyload placeholder" data-srcset="https://pic4.zhimg.com/80/v2-83ea273b88e119d9615aed0d89aad4ab_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+    </div>
+    <a href="/2026/03/03/%E5%AE%9E%E7%8E%B0Activity%E8%B7%B3%E8%BD%AC%E5%8A%A8%E7%94%BB%E7%9A%84%E6%96%B9%E5%BC%8F%EF%BC%88%E5%85%B1%E4%BA%AB%E7%BB%84%E4%BB%B6%E6%96%B9%E5%BC%8F%EF%BC%89/" class="post-nav-link">
+      <div class="title">
+        <i class="fas fa-angle-left"></i> Prev:
+        <div class="title-text">实现Activity跳转动画的方式（共享组件方式）</div>
+      </div>
+      
+      <!-- <div class="content">
+        相信大部分的Android开发者都已经知道Activity的跳转方式（eg：通过intent跳转），也见过市面上app页
+      </div> -->
+    </a>
+  </div>
+
+
+
+  
+  <div class="post-nav-next post-nav-item">
+    <div class="post-nav-img" style="background-size: cover; 
+      background-position: center center;">
+      <img class="lazyload lazyload placeholder" src="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" class="lazyload placeholder" data-srcset="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" src="" alt="">
+    </div>
+    <a href="/2026/03/02/UML%E7%B1%BB%E5%9B%BE%E6%80%8E%E4%B9%88%E7%94%BB%EF%BC%9F%E2%80%94%E2%80%94%E5%9B%BE%E6%96%87%E8%AF%A6%E7%BB%86%E7%90%86%E8%A7%A3/" class="post-nav-link">
+      <div class="title">
+        Next: <i class="fas fa-angle-right"></i>
+        <div class="title-text">UML类图怎么画？——图文详细理解</div>
+      </div>
+      <!-- <div class="content">
+        UML类图怎么画——图文详细理解UML类图是干什么的？UML类图怎么画？为什么别人画的类图清晰明了？UML类图，UML中
+      </div> -->
+    </a>
+  </div>
+
+</div>
+
+    
+    
+
+    <!-- 打赏 -->
+    
+      <div id="appDonate" class="post-donate">
+  <div id="donate_board" class="donate_bar center" ref="donate">
+    <a id="btn_donate" class="btn_donate" href="javascript:;" title="打赏" @click="showDialogDrawer()"></a>
+  </div>
+  <transition name="fade">
+    <div 
+      class="donate-box-mask"
+      v-cloak 
+      v-show="visible"
+      @click="cancelDialogDrawer()"
+    >
+    </div>
+  </transition>
+  <transition name="bounce">
+    <div class="donate-box" v-cloak v-show="visible">
+      <div class="donate-box_close">
+        <i class="fas fa-times" aria-hidden="true" @click="cancelDialogDrawer" pointer></i>
+      </div>
+      <div class="donate-box_title">
+        <h4>
+          你的赏识是我前进的动力
+        </h4>
+      </div>
+      <div class="donate-box_tab">
+        <div class="Alipay" pointer :class="{'active': tabActive === 'Alipay'}" @click="changeTabActive('Alipay')">
+          支付宝
+        </div>
+        <div class="WeChatpay" pointer :class="{'active': tabActive === 'WeChatpay'}" @click="changeTabActive('WeChatpay')">
+          微信
+        </div>
+      </div>
+      <div class="donate-box_img">
+        <div class="AlipayImg" v-show="tabActive === 'Alipay'">
+          <img src="https://gitee.com/phc-seu/picture-sets/raw/master/AliPay_%20Payment.webp" class="lazyload placeholder" data-srcset="https://gitee.com/phc-seu/picture-sets/raw/master/AliPay_%20Payment.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="支付宝打赏" />
+        </div> 
+        <div class="WeChatpayImg" v-show="tabActive === 'WeChatpay'">
+          <img src="https://gitee.com/phc-seu/picture-sets/raw/master/WeChat%20_Payment.webp" class="lazyload placeholder" data-srcset="https://gitee.com/phc-seu/picture-sets/raw/master/WeChat%20_Payment.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="微信打赏" />
+        </div>
+      </div>
+    </div>
+  </transition>
+</div>
+
+<script>
+  var body = document.body || document.documentElement || window;
+  var vm = new Vue({
+    el: '#appDonate',
+    data: {
+      visible: false,
+      tabActive: 'Alipay',
+      top: 0,
+    },
+    computed: {
+    },
+    mounted() {
+    },
+    methods: {
+      showDialogDrawer() {
+        this.visible = true;
+        // 防止页面滚动，只能让弹框滚动
+        // function getScroll() {
+        //   return {
+        //     left: window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0,
+        //     top: window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
+        //   };
+        // }
+        this.top = $(document).scrollTop() // or getScroll().top
+        // console.log('aa', $('.main-content'));
+        body.style.cssText = 'overflow: hidden;';
+      },
+      cancelDialogDrawer() {
+        this.visible = false;
+        body.removeAttribute('style');
+        $(document).scrollTop(this.top)
+      },
+      changeTabActive(name) {
+        this.tabActive = name;
+      }
+    },
+    created() {}
+  })
+</script>
+    
+
+    <!-- 分享 -->
+    
+      <!-- https://github.com/overtrue/share.js -->
+<!-- 文章详情页的分享 -->
+<div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+
+<script defer src="/js/shareJs/social-share.min.js"></script>
+</script>
+
+<style>
+  .social-share {
+    margin: 20px 0;
+  }
+</style>
+
+
+    
+    
+    <!-- 评论 -->
+    <!-- 评论 -->
+
+  <div id="myComment">
+    
+      <div id="gitment-container"></div>
+
+    
+  </div>
+
+
+<!-- 还需要在后面这个地址里设置script, comment script in themes\hexo-theme-bamboo\layout\_partial\scripts\index.ejs -->
+
+
+  </div>
+
+  <!-- 目录 -->
+  <aside id='l_side'>
+  
+    
+      <section class="widget side_blogger">
+  <div class='content'>
+    
+      
+        <a class='avatar flat-box rectangle' href='/about/'>
+          <img src='https://pic2.zhimg.com/80/v2-42b72d5ebee4b8d8aa70d9687effe87b_1440w.webp'/>
+        </a>
+      
+    
+    
+      <div class='text'>
+        
+          <h2>听风说梦</h2>
+        
+        
+          <p>独钓寒江雪</p>
+
+        
+        
+          <p><span id="jinrishici-sentence">Penghc_Blog</span></p>
+          <script src="https://sdk.jinrishici.com/v2/browser/jinrishici.js" charset="utf-8"></script>
+        
+      </div>
+    
+    
+      <div class="social-wrapper">
+        
+          
+            <a href="/atom.xml"
+              class="social fas fa-rss flat-btn"
+              target="_blank"
+              rel="external nofollow noopener noreferrer">
+              
+            </a>
+          
+        
+          
+            <a href="/3207161176@qq.com"
+              class="social fas fa-envelope flat-btn"
+              target="_blank"
+              rel="external nofollow noopener noreferrer">
+              
+            </a>
+          
+        
+          
+            <a href="https://github.com/Peng-HC"
+              class="social fab fa-github flat-btn"
+              target="_blank"
+              rel="external nofollow noopener noreferrer">
+              
+            </a>
+          
+        
+          
+            <a href="tencent://AddContact/?fromId=50&amp;fromSubId=1&amp;subcmd=all&amp;uin=3207161176"
+              class="social fab fa-qq flat-btn"
+              target="_blank"
+              rel="external nofollow noopener noreferrer">
+              
+            </a>
+          
+        
+      </div>
+    
+  </div>
+</section>
+
+    
+  
+  
+  
+
+  <div class="layout_sticky">    
+    
+      
+<section class="widget side_toc">
+  
+  <header>
+    
+      <i style="color: " class="fas fa-list fa-fw" aria-hidden="true"></i><span class='name' style="color: ">本文目录</span>
+    
+  </header>
+
+
+  <div class='content'>
+    <div class="toc-main">
+      <div class="toc-content">
+        <!-- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81JDK%E8%87%AA%E5%B8%A6%E7%9A%84ThreadPoolExecutor"><span class="toc-text">一、JDK自带的ThreadPoolExecutor</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E6%A0%B8%E5%BF%83%E5%8F%82%E6%95%B0%E8%AF%B4%E6%98%8E"><span class="toc-text">线程池核心参数说明</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E7%AD%96%E7%95%A5"><span class="toc-text">二、线程池的策略</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-%E5%B8%B8%E8%A7%81%E7%9A%84%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97%E7%B1%BB%E5%9E%8B"><span class="toc-text">2.1 常见的任务队列类型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-SynchronousQueue%EF%BC%88%E7%9B%B4%E6%8E%A5%E6%8F%90%E4%BA%A4%E9%98%9F%E5%88%97%EF%BC%89"><span class="toc-text">1. SynchronousQueue（直接提交队列）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-ArrayBlockingQueue%EF%BC%88%E6%9C%89%E7%95%8C%E6%95%B0%E7%BB%84%E9%98%9F%E5%88%97%EF%BC%89"><span class="toc-text">2. ArrayBlockingQueue（有界数组队列）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-LinkedBlockingQueue%EF%BC%88%E6%97%A0%E7%95%8C-%E6%9C%89%E7%95%8C%E9%93%BE%E8%A1%A8%E9%98%9F%E5%88%97%EF%BC%89"><span class="toc-text">3. LinkedBlockingQueue（无界 &#x2F; 有界链表队列）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-PriorityBlockingQueue%EF%BC%88%E4%BC%98%E5%85%88%E9%98%9F%E5%88%97%EF%BC%89"><span class="toc-text">4. PriorityBlockingQueue（优先队列）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-DelayedWorkQueue%EF%BC%88%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97%EF%BC%89"><span class="toc-text">5. DelayedWorkQueue（延迟队列）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-%E5%B8%B8%E8%A7%81%E7%9A%84%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5"><span class="toc-text">2.2 常见的拒绝策略</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-AbortPolicy%EF%BC%88%E9%BB%98%E8%AE%A4%E7%AD%96%E7%95%A5%EF%BC%89"><span class="toc-text">1. AbortPolicy（默认策略）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-CallerRunsPolicy%EF%BC%88%E8%B0%83%E7%94%A8%E8%80%85%E8%BF%90%E8%A1%8C%E7%AD%96%E7%95%A5%EF%BC%89"><span class="toc-text">2. CallerRunsPolicy（调用者运行策略）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-DiscardPolicy%EF%BC%88%E4%B8%A2%E5%BC%83%E7%AD%96%E7%95%A5%EF%BC%89"><span class="toc-text">3. DiscardPolicy（丢弃策略）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-DiscardOldestPolicy%EF%BC%88%E4%B8%A2%E5%BC%83%E6%9C%80%E6%97%A7%E4%BB%BB%E5%8A%A1%E7%AD%96%E7%95%A5%EF%BC%89"><span class="toc-text">4. DiscardOldestPolicy（丢弃最旧任务策略）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%BB%8B%E7%BB%8D%E4%B8%80%E4%B8%8BRunnable%E3%80%81Callable%E5%92%8CFuture"><span class="toc-text">三、介绍一下Runnable、Callable和Future</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%89%8B%E6%90%93%E7%AE%80%E6%98%93%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-text">四、手搓简易线程池</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1-%E4%BB%A3%E7%A0%81"><span class="toc-text">4.1 代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E7%BB%93%E6%9E%9C"><span class="toc-text">运行结果</span></a></li></ol></li></ol> -->
+        <div class="toc"></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- 手机端目录按钮 -->
+<div id="toc-mobile-btn">
+  <i class="fas fa-list-ul" aria-hidden="true"></i>
+</div>
+
+      
+  <section class="widget side_recent_post">
+    
+  <header>
+    
+      <a style="color: " href='/tags/'><i class="fas fa-book fa-fw" aria-hidden="true"></i><span class='name'>最新文章</span></a>
+    
+  </header>
+
+
+    <div class='content'>
+      
+      <!-- hash算法 -->
+      
+      <div class="aside-list">
+        
+          <div class="aside-list-item">
+            
+            
+            
+
+            <div class="post-img-box">
+              <a href="/2026/03/03/Recyclerview%E5%9B%9E%E6%94%B6%E5%A4%8D%E7%94%A8%E6%9C%BA%E5%88%B6%E2%80%94%E2%80%94%E5%9B%BE%E6%96%87%E8%AF%A6%E8%A7%A3/" class="post-img " style="background-size: cover; 
+                background-position: center center;">
+                <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="https://pica.zhimg.com/80/v2-573ac3e25de03fad9c32add5a05e5cfc_1440w.webp" class="lazyload placeholder" data-srcset="https://pica.zhimg.com/80/v2-573ac3e25de03fad9c32add5a05e5cfc_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+              </a>
+            </div>
+            <div class="post-date-title">
+              <div>
+                
+                  <span class="post-date">03-03</span>
+                
+              </div>
+              <a class="post-title" href="/2026/03/03/Recyclerview%E5%9B%9E%E6%94%B6%E5%A4%8D%E7%94%A8%E6%9C%BA%E5%88%B6%E2%80%94%E2%80%94%E5%9B%BE%E6%96%87%E8%AF%A6%E8%A7%A3/">Recyclerview回收复用机制——图文详解</a>
+            </div>
+          </div>
+        
+          <div class="aside-list-item">
+            
+            
+            
+
+            <div class="post-img-box">
+              <a href="/2026/03/03/%E5%AE%9E%E7%8E%B0Activity%E8%B7%B3%E8%BD%AC%E5%8A%A8%E7%94%BB%E7%9A%84%E6%96%B9%E5%BC%8F%EF%BC%88%E5%85%B1%E4%BA%AB%E7%BB%84%E4%BB%B6%E6%96%B9%E5%BC%8F%EF%BC%89/" class="post-img " style="background-size: cover; 
+                background-position: center center;">
+                <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="https://pic4.zhimg.com/80/v2-83ea273b88e119d9615aed0d89aad4ab_1440w.webp" class="lazyload placeholder" data-srcset="https://pic4.zhimg.com/80/v2-83ea273b88e119d9615aed0d89aad4ab_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+              </a>
+            </div>
+            <div class="post-date-title">
+              <div>
+                
+                  <span class="post-date">03-03</span>
+                
+              </div>
+              <a class="post-title" href="/2026/03/03/%E5%AE%9E%E7%8E%B0Activity%E8%B7%B3%E8%BD%AC%E5%8A%A8%E7%94%BB%E7%9A%84%E6%96%B9%E5%BC%8F%EF%BC%88%E5%85%B1%E4%BA%AB%E7%BB%84%E4%BB%B6%E6%96%B9%E5%BC%8F%EF%BC%89/">实现Activity跳转动画的方式（共享组件方式）</a>
+            </div>
+          </div>
+        
+          <div class="aside-list-item">
+            
+            
+            
+
+            <div class="post-img-box">
+              <a href="/2026/03/02/%E4%B8%80%E6%96%87%E8%AF%A6%E7%BB%86%E8%A7%A3%E6%9E%90ThreadPoolExector%E7%BA%BF%E7%A8%8B%E6%B1%A0/" class="post-img " style="background-size: cover; 
+                background-position: center center;">
+                <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="https://pic4.zhimg.com/80/v2-83ea273b88e119d9615aed0d89aad4ab_1440w.webp" class="lazyload placeholder" data-srcset="https://pic4.zhimg.com/80/v2-83ea273b88e119d9615aed0d89aad4ab_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+              </a>
+            </div>
+            <div class="post-date-title">
+              <div>
+                
+                  <span class="post-date">03-02</span>
+                
+              </div>
+              <a class="post-title" href="/2026/03/02/%E4%B8%80%E6%96%87%E8%AF%A6%E7%BB%86%E8%A7%A3%E6%9E%90ThreadPoolExector%E7%BA%BF%E7%A8%8B%E6%B1%A0/">一文详细解析ThreadPoolExector线程池</a>
+            </div>
+          </div>
+        
+          <div class="aside-list-item">
+            
+            
+            
+
+            <div class="post-img-box">
+              <a href="/2026/03/02/UML%E7%B1%BB%E5%9B%BE%E6%80%8E%E4%B9%88%E7%94%BB%EF%BC%9F%E2%80%94%E2%80%94%E5%9B%BE%E6%96%87%E8%AF%A6%E7%BB%86%E7%90%86%E8%A7%A3/" class="post-img " style="background-size: cover; 
+                background-position: center center;">
+                <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" class="lazyload placeholder" data-srcset="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+              </a>
+            </div>
+            <div class="post-date-title">
+              <div>
+                
+                  <span class="post-date">03-02</span>
+                
+              </div>
+              <a class="post-title" href="/2026/03/02/UML%E7%B1%BB%E5%9B%BE%E6%80%8E%E4%B9%88%E7%94%BB%EF%BC%9F%E2%80%94%E2%80%94%E5%9B%BE%E6%96%87%E8%AF%A6%E7%BB%86%E7%90%86%E8%A7%A3/">UML类图怎么画？——图文详细理解</a>
+            </div>
+          </div>
+        
+          <div class="aside-list-item">
+            
+            
+            
+
+            <div class="post-img-box">
+              <a href="/2026/02/26/%E5%9B%A2%E9%98%9F%E5%8D%8F%E4%BD%9C%E4%B8%ADGit%20Commit%E5%BA%94%E8%AF%A5%E5%A6%82%E4%BD%95%E8%A7%84%E8%8C%83%E5%8C%96/" class="post-img " style="background-size: cover; 
+                background-position: center center;">
+                <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="https://pica.zhimg.com/80/v2-573ac3e25de03fad9c32add5a05e5cfc_1440w.webp" class="lazyload placeholder" data-srcset="https://pica.zhimg.com/80/v2-573ac3e25de03fad9c32add5a05e5cfc_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+              </a>
+            </div>
+            <div class="post-date-title">
+              <div>
+                
+                  <span class="post-date">02-26</span>
+                
+              </div>
+              <a class="post-title" href="/2026/02/26/%E5%9B%A2%E9%98%9F%E5%8D%8F%E4%BD%9C%E4%B8%ADGit%20Commit%E5%BA%94%E8%AF%A5%E5%A6%82%E4%BD%95%E8%A7%84%E8%8C%83%E5%8C%96/">团队协作中Git Commit应该如何规范化</a>
+            </div>
+          </div>
+        
+      </div>
+    </div>
+  </section>
+
+    
+  </div>
+</aside>
+
+  <!-- 图片放大 Wrap images with fancybox support -->
+  <script defer src="/js/wrapImage.js"></script>
+</div>
+
+<!-- 文章详情页背景图 -->
+<div id="appBgSwiper" style="position: fixed;left: 0;top: 0;width: 100%;height: 100%;z-index: -2;"
+	:style="{'background-color': bgColor ? bgColor : 'transparent'}">
+	<transition-group tag="ul" :name="names">
+		<li v-for='(image,index) in img' :key='index' v-show="index === mark" class="bg-swiper-box">
+			<img :src="image" class="bg-swiper-img no-lazy">
+		</li>
+	</transition-group>
+</div>
+<script>
+	var vm = new Vue({
+		el: '#appBgSwiper',
+		data: {
+			names: '' || 'fade' || 'fade', // translate-fade fade
+			mark: 0,
+			img: [],
+			bgColor: '',
+			time: null
+		},
+		methods: {   //添加方法
+			change(i, m) {
+				if (i > m) {
+					// this.names = 'fade';
+				} else if (i < m) {
+					// this.names = 'fade';
+				} else {
+					return;
+				}
+				this.mark = i;
+			},
+			prev() {
+				// this.names = 'fade';
+				this.mark--;
+				if (this.mark === -1) {
+					this.mark = 3;
+					return
+				}
+			},
+			next() {
+				// this.names = 'fade';
+				this.mark++;
+				if (this.mark === this.img.length) {
+					this.mark = 0;
+					return
+				}
+			},
+			autoPlay() {
+				// this.names = 'fade';
+				this.mark++;
+				if (this.mark === this.img.length) {
+					this.mark = 0;
+					return
+				}
+			},
+			play() {
+				let bgImgDelay = '' || '180000'
+				let delay = parseInt(bgImgDelay) || 180000;
+				this.time = setInterval(this.autoPlay, delay);
+			},
+			enter() {
+				clearInterval(this.time);
+			},
+			leave() {
+				this.play();
+			}
+		},
+		created() {
+			this.play()
+		},
+		beforeDestroy() {
+			clearInterval(this.time);
+		},
+		mounted() {
+			let prop = '' || '';
+			let isImg = prop.includes('.bmp') || prop.includes('.jpg') || prop.includes('.png') || prop.includes('.tif') || prop.includes('.gif') || prop.includes('.pcx') || prop.includes('.tga') || prop.includes('.exif') || prop.includes('.fpx') || prop.includes('.psd') || prop.includes('.cdr') || prop.includes('.pcd') || prop.includes('.dxf') || prop.includes('.ufo') || prop.includes('.eps') || prop.includes('.ai') || prop.includes('.raw') || prop.includes('.WMF') || prop.includes('.webp') || prop.includes('.jpeg') || prop.includes('http://') || prop.includes('https://')
+			if (isImg) {
+				let img = prop.split(',');
+				let configRoot = '/'
+				let arrImg = [];
+				img.forEach(el => {
+					var Expression = /http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?/;
+					var objExp = new RegExp(Expression);
+
+					if (objExp.test(el)) {
+						// http or https
+						arrImg.push(el);
+					} else {
+						// 非http or https开头
+						// 本地文件
+						let firstStr = el.charAt(0);
+						if (firstStr == '/') {
+							el = el.substr(1); // 删除第一个字符 '/',因为 configRoot最后一个字符为 /
+						}
+						el = configRoot + el;
+						arrImg.push(el);
+					}
+				})
+				this.img = arrImg;
+			} else {
+				this.bgColor = prop;
+			}
+		}
+	})
+</script>
+
+<style>
+	.bg-swiper-box {
+		position: absolute;
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	.bg-swiper-img {
+		object-fit: cover;
+		width: 100%;
+		height: 100%;
+	}
+</style>
+
+
+
+
+  <script>
+  function loadMermaid() {
+    if (document.getElementsByClassName('mermaid').length) {
+      if (window.mermaidJsLoad) mermaid.init()
+      else {
+        loadScript('https://unpkg.com/mermaid/dist/mermaid.min.js').then(() => {
+          window.mermaidJsLoad = true
+          mermaid.initialize({
+            theme: 'default',
+          })
+          if ('true') {
+            mermaid.init();
+          }
+        })
+      }
+    }
+  };
+  document.addEventListener("DOMContentLoaded", function () {
+    loadMermaid();
+  })
+
+  document.addEventListener('pjax:complete', function () {
+    loadMermaid();
+  })
+  
+</script>
+
+
+      </main>
+    </div>
+
+    <!-- 页脚 -->
+    
+  
+  
+    <!-- 底部鱼儿跳动效果，依赖于jquery-->
+<div id="j-fish-skip" style=" position: relative;height: 153px;width: auto;"></div>
+<script defer>
+  var RENDERER = {
+    POINT_INTERVAL: 5,
+    FISH_COUNT: 3,
+    MAX_INTERVAL_COUNT: 50,
+    INIT_HEIGHT_RATE: .5,
+    THRESHOLD: 50,
+    FISH_COLOR: '',
+    init: function () {
+      this.setFishColor(); this.setParameters(), this.reconstructMethods(), this.setup(), this.bindEvent(), this.render()
+    },
+    setFishColor: function () {
+      let isDark = JSON.parse(localStorage.getItem('dark')) || JSON.parse('false');
+      if (isDark) {
+        this.FISH_COLOR = '#222'; // 暗黑色，有时间把这整成一个变量
+      } else {
+        this.FISH_COLOR = '' || 'rgba(66, 185, 133, 0.8)';
+      }
+    },
+    setParameters: function () {
+      this.$window = $(window), this.$container = $("#j-fish-skip"), this.$canvas = $("<canvas />"), this.context = this.$canvas.appendTo(this.$container).get(0).getContext("2d"), this.points = [], this.fishes = [], this.watchIds = []
+    },
+    createSurfacePoints: function () {
+      var t = Math.round(this.width / this.POINT_INTERVAL);
+      this.pointInterval = this.width / (t - 1), this.points.push(new SURFACE_POINT(this, 0));
+      for (var i = 1; i < t; i++) {
+        var e = new SURFACE_POINT(this, i * this.pointInterval),
+          h = this.points[i - 1];
+        e.setPreviousPoint(h), h.setNextPoint(e), this.points.push(e)
+      }
+    },
+    reconstructMethods: function () {
+      this.watchWindowSize = this.watchWindowSize.bind(this), this.jdugeToStopResize = this.jdugeToStopResize.bind(this), this.startEpicenter = this.startEpicenter.bind(this), this.moveEpicenter = this.moveEpicenter.bind(this), this.reverseVertical = this.reverseVertical.bind(this), this.render = this.render.bind(this)
+    },
+    setup: function () {
+      this.points.length = 0, this.fishes.length = 0, this.watchIds.length = 0, this.intervalCount = this.MAX_INTERVAL_COUNT, this.width = this.$container.width(), this.height = this.$container.height(), this.fishCount = this.FISH_COUNT * this.width / 500 * this.height / 500, this.$canvas.attr({
+        width: this.width,
+        height: this.height
+      }), this.reverse = !1, this.fishes.push(new FISH(this)), this.createSurfacePoints()
+    },
+    watchWindowSize: function () {
+      this.clearTimer(), this.tmpWidth = this.$window.width(), this.tmpHeight = this.$window.height(), this.watchIds.push(setTimeout(this.jdugeToStopResize, this.WATCH_INTERVAL))
+    },
+    clearTimer: function () {
+      for (; this.watchIds.length > 0;) clearTimeout(this.watchIds.pop())
+    },
+    jdugeToStopResize: function () {
+      var t = this.$window.width(),
+        i = this.$window.height(),
+        e = t == this.tmpWidth && i == this.tmpHeight;
+      this.tmpWidth = t, this.tmpHeight = i, e && this.setup()
+    },
+    bindEvent: function () {
+      this.$window.on("resize", this.watchWindowSize), this.$container.on("mouseenter", this.startEpicenter), this.$container.on("mousemove", this.moveEpicenter)
+    },
+    getAxis: function (t) {
+      var i = this.$container.offset();
+      return {
+        x: t.clientX - i.left + this.$window.scrollLeft(),
+        y: t.clientY - i.top + this.$window.scrollTop()
+      }
+    },
+    startEpicenter: function (t) {
+      this.axis = this.getAxis(t)
+    },
+    moveEpicenter: function (t) {
+      var i = this.getAxis(t);
+      this.axis || (this.axis = i), this.generateEpicenter(i.x, i.y, i.y - this.axis.y), this.axis = i
+    },
+    generateEpicenter: function (t, i, e) {
+      if (!(i < this.height / 2 - this.THRESHOLD || i > this.height / 2 + this.THRESHOLD)) {
+        var h = Math.round(t / this.pointInterval);
+        h < 0 || h >= this.points.length || this.points[h].interfere(i, e)
+      }
+    },
+    reverseVertical: function () {
+      this.reverse = !this.reverse;
+      for (var t = 0, i = this.fishes.length; t < i; t++) this.fishes[t].reverseVertical()
+    },
+    controlStatus: function () {
+      for (var t = 0, i = this.points.length; t < i; t++) this.points[t].updateSelf();
+      for (t = 0, i = this.points.length; t < i; t++) this.points[t].updateNeighbors();
+      this.fishes.length < this.fishCount && 0 == --this.intervalCount && (this.intervalCount = this.MAX_INTERVAL_COUNT, this.fishes.push(new FISH(this)))
+    },
+    render: function () {
+      requestAnimationFrame(this.render), this.controlStatus(), this.context.clearRect(0, 0, this.width, this.height), this.context.fillStyle = this.FISH_COLOR;
+      for (var t = 0, i = this.fishes.length; t < i; t++) this.fishes[t].render(this.context);
+      this.context.save(), this.context.globalCompositeOperation = "xor", this.context.beginPath(), this.context.moveTo(0, this.reverse ? 0 : this.height);
+      for (t = 0, i = this.points.length; t < i; t++) this.points[t].render(this.context);
+      this.context.lineTo(this.width, this.reverse ? 0 : this.height), this.context.closePath(), this.context.fill(), this.context.restore()
+    }
+  },
+  SURFACE_POINT = function (t, i) {
+    this.renderer = t, this.x = i, this.init()
+  };
+  SURFACE_POINT.prototype = {
+    SPRING_CONSTANT: .03,
+    SPRING_FRICTION: .9,
+    WAVE_SPREAD: .3,
+    ACCELARATION_RATE: .01,
+    init: function () {
+      this.initHeight = this.renderer.height * this.renderer.INIT_HEIGHT_RATE, this.height = this.initHeight, this.fy = 0, this.force = {
+        previous: 0,
+        next: 0
+      }
+    },
+    setPreviousPoint: function (t) {
+      this.previous = t
+    },
+    setNextPoint: function (t) {
+      this.next = t
+    },
+    interfere: function (t, i) {
+      this.fy = this.renderer.height * this.ACCELARATION_RATE * (this.renderer.height - this.height - t >= 0 ? -1 : 1) * Math.abs(i)
+    },
+    updateSelf: function () {
+      this.fy += this.SPRING_CONSTANT * (this.initHeight - this.height), this.fy *= this.SPRING_FRICTION, this.height += this.fy
+    },
+    updateNeighbors: function () {
+      this.previous && (this.force.previous = this.WAVE_SPREAD * (this.height - this.previous.height)), this.next && (this.force.next = this.WAVE_SPREAD * (this.height - this.next.height))
+    },
+    render: function (t) {
+      this.previous && (this.previous.height += this.force.previous, this.previous.fy += this.force.previous), this.next && (this.next.height += this.force.next, this.next.fy += this.force.next), t.lineTo(this.x, this.renderer.height - this.height)
+    }
+  };
+  var FISH = function (t) {
+    this.renderer = t, this.init()
+  };
+  FISH.prototype = {
+    GRAVITY: .4,
+    init: function () {
+      this.direction = Math.random() < .5, this.x = this.direction ? this.renderer.width + this.renderer.THRESHOLD : -this.renderer.THRESHOLD, this.previousY = this.y, this.vx = this.getRandomValue(4, 10) * (this.direction ? -1 : 1), this.renderer.reverse ? (this.y = this.getRandomValue(1 * this.renderer.height / 10, 4 * this.renderer.height / 10), this.vy = this.getRandomValue(2, 5), this.ay = this.getRandomValue(.05, .2)) : (this.y = this.getRandomValue(6 * this.renderer.height / 10, 9 * this.renderer.height / 10), this.vy = this.getRandomValue(-5, -2), this.ay = this.getRandomValue(-.2, -.05)), this.isOut = !1, this.theta = 0, this.phi = 0
+    },
+    getRandomValue: function (t, i) {
+      return t + (i - t) * Math.random()
+    },
+    reverseVertical: function () {
+      this.isOut = !this.isOut, this.ay *= -1
+    },
+    controlStatus: function (t) {
+      this.previousY = this.y, this.x += this.vx, this.y += this.vy, this.vy += this.ay, this.renderer.reverse ? this.y > this.renderer.height * this.renderer.INIT_HEIGHT_RATE ? (this.vy -= this.GRAVITY, this.isOut = !0) : (this.isOut && (this.ay = this.getRandomValue(.05, .2)), this.isOut = !1) : this.y < this.renderer.height * this.renderer.INIT_HEIGHT_RATE ? (this.vy += this.GRAVITY, this.isOut = !0) : (this.isOut && (this.ay = this.getRandomValue(-.2, -.05)), this.isOut = !1), this.isOut || (this.theta += Math.PI / 20, this.theta %= 2 * Math.PI, this.phi += Math.PI / 30, this.phi %= 2 * Math.PI), this.renderer.generateEpicenter(this.x + (this.direction ? -1 : 1) * this.renderer.THRESHOLD, this.y, this.y - this.previousY), (this.vx > 0 && this.x > this.renderer.width + this.renderer.THRESHOLD || this.vx < 0 && this.x < -this.renderer.THRESHOLD) && this.init()
+    },
+    render: function (t) {
+      t.save(), t.translate(this.x, this.y), t.rotate(Math.PI + Math.atan2(this.vy, this.vx)), t.scale(1, this.direction ? 1 : -1), t.beginPath(), t.moveTo(-30, 0), t.bezierCurveTo(-20, 15, 15, 10, 40, 0), t.bezierCurveTo(15, -10, -20, -15, -30, 0), t.fill(), t.save(), t.translate(40, 0), t.scale(.9 + .2 * Math.sin(this.theta), 1), t.beginPath(), t.moveTo(0, 0), t.quadraticCurveTo(5, 10, 20, 8), t.quadraticCurveTo(12, 5, 10, 0), t.quadraticCurveTo(12, -5, 20, -8), t.quadraticCurveTo(5, -10, 0, 0), t.fill(), t.restore(), t.save(), t.translate(-3, 0), t.rotate((Math.PI / 3 + Math.PI / 10 * Math.sin(this.phi)) * (this.renderer.reverse ? -1 : 1)), t.beginPath(), this.renderer.reverse ? (t.moveTo(5, 0), t.bezierCurveTo(10, 10, 10, 30, 0, 40), t.bezierCurveTo(-12, 25, -8, 10, 0, 0)) : (t.moveTo(-5, 0), t.bezierCurveTo(-10, -10, -10, -30, 0, -40), t.bezierCurveTo(12, -25, 8, -10, 0, 0)), t.closePath(), t.fill(), t.restore(), t.restore(), this.controlStatus(t)
+    }
+  }, $(function () {
+    RENDERER.init()
+    $('.dark').click(function () {
+      setTimeout(() => {
+        RENDERER.setFishColor();
+        RENDERER.context.fill();
+      });
+    })
+  });
+</script>
+  
+  <div class="footer bg-color">
+    <div class="footer-main">
+      
+        
+          <div class="link">
+            
+          </div>
+        
+      
+        
+          <div class="footer-copyright">
+            <p>Copyright © 2023 - 2024 <a target="_blank" rel="noopener" href="https://github.com/Peng-HC">PengHC</a> | Powered by <a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/docs/">Hexo</a> | Theme <a target="_blank" rel="noopener" href="https://github.com/Peng-HC/hexo-theme-bamboo">Bamboo</a> </p>
+
+          </div>
+        
+      
+        
+          
+            <!-- 不蒜子统计 -->
+            <!-- 不蒜子统计 -->
+<span id="busuanzi_container_site_pv">
+      <i class="fas fa-eye" aria-hidden="true"></i>Total visits：<span id="busuanzi_value_site_pv"></span> times
+</span>
+<span class="post-meta-divider">|</span>
+<span id="busuanzi_container_site_uv" style='display:none'>
+      <i class="fas fa-users" aria-hidden="true"></i>Number of visitors：<span id="busuanzi_value_site_uv"></span> people
+</span>
+
+          
+        
+      
+        
+          <div class="footer-custom">
+            
+          </div>
+        
+      
+    </div>
+  </div>
+
+
+
+    <!-- 渲染暗黑按钮 -->
+    
+      <div class="dark" onclick="toggleDarkMode()">
+  <div class="dark-content">
+    <i class="fas" id="darkIcon" aria-hidden="true"></i>
+  </div>
+</div>
+
+<script defer>
+  $(function() {
+    // 初始化暗黑模式状态
+    let isDark = JSON.parse(localStorage.getItem('dark')) || JSON.parse('false');
+    updateDarkModeIcon(isDark);
+  });
+
+  function toggleDarkMode() {
+    const isDark = $(document.body).hasClass('darkModel');
+    $(document.body).toggleClass('darkModel');
+    localStorage.setItem('dark', !isDark);
+    updateDarkModeIcon(!isDark);
+  }
+
+  function updateDarkModeIcon(isDark) {
+    const iconElement = document.getElementById('darkIcon');
+    if (isDark) {
+      iconElement.classList.remove('fa-moon');
+      iconElement.classList.add('fa-lightbulb');
+    } else {
+      iconElement.classList.remove('fa-lightbulb');
+      iconElement.classList.add('fa-moon');
+    }
+  }
+</script>
+
+    
+    <!-- 渲染回到顶部按钮 -->
+    
+      <div class="goTop top-btn-color" pointer>
+  <i class="fas fa-arrow-up" aria-hidden="true"></i>
+</div>
+<script defer src="/js/goTop.js"></script>
+
+    
+    <!-- 渲染左下角音乐播放器 -->
+    
+
+    <!-- 图片放大 -->
+    
+      <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+    
+
+    <!-- 百度解析 -->
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script async>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <!-- 背景彩带 -->
+    
+      <script async type="text/javascript" size="100" alpha='0.4' zIndex="-1" src="/js/ribbon.min.js"></script>
+    
+
+    <script src="/js/utils/index.js"></script>
+    <script src="/js/app.js"></script>
+    
+    <!-- 文章目录所需js -->
+<!-- <link href="/js/tocbot/tocbot.css" rel="stylesheet">
+<script src="/js/tocbot/tocbot.min.js"></script> -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.18.2/tocbot.min.js"></script>
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.18.2/tocbot.css">
+
+<script>
+  var headerEl = 'h2, h3, h4',  //headers 
+    content = '.post-detail',//文章容器
+    idArr = {};  //标题数组以确定是否增加索引id
+  //add #id
+  var option = {
+    // Where to render the table of contents.
+    tocSelector: '.toc',
+    // Where to grab the headings to build the table of contents.
+    contentSelector: content,
+    // Which headings to grab inside of the contentSelector element.
+    headingSelector: headerEl,
+    scrollSmooth: true,
+    scrollSmoothOffset: -70,
+    // headingsOffset: -($(window).height() * 0.4 - 45),
+    headingsOffset: -($(window).height() * 0.4 - 70),
+    // positionFixedSelector: '.toc-main',
+    // positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    activeLinkClass: 'is-active-link',
+    orderedList: true,
+    collapseDepth: 20,
+    // onClick: function (e) {},
+  }
+  if ($('.toc').length > 0) {
+
+    $(content).children(headerEl).each(function () {
+      //去除空格以及多余标点
+      var headerId = $(this).text().replace(/[\s|\~|`|\!|\@|\#|\$|\%|\^|\&|\*|\(|\)|\_|\+|\=|\||\|\[|\]|\{|\}|\;|\:|\"|\'|\,|\<|\.|\>|\/|\?|\：|\，|\。]/g, '');
+
+      headerId = headerId.toLowerCase();
+      if (idArr[headerId]) {
+        //id已经存在
+        $(this).attr('id', headerId + '-' + idArr[headerId]);
+        idArr[headerId]++;
+      }
+      else {
+        //id未存在
+        idArr[headerId] = 1;
+        $(this).attr('id', headerId);
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+      tocbot.init(option);
+      mobileTocClick();
+    });
+
+  }
+
+  window.tocScrollFn = function () {
+    return bamboo.throttle(function () {
+      findHeadPosition();
+    }, 100)()
+  }
+  window.addEventListener('scroll', tocScrollFn);
+
+  const findHeadPosition = function (top) {
+    if ($('.toc-list').length <= 0) {
+      return false;
+    }
+    setTimeout(() => {  // or DOMContentLoaded 
+      autoScrollToc();
+    }, 0);
+  }
+
+  const autoScrollToc = function () {
+    const $activeItem = document.querySelector('.is-active-link');
+    const $cardToc = document.querySelector('.toc-content');
+    const activePosition = $activeItem.getBoundingClientRect().top
+    const sidebarScrollTop = $cardToc.scrollTop
+    if (activePosition > (document.documentElement.clientHeight - 100)) {
+      $cardToc.scrollTop = sidebarScrollTop + 150
+    }
+    if (activePosition < 150) {
+      $cardToc.scrollTop = sidebarScrollTop - 150
+    }
+  }
+
+  document.addEventListener('pjax:send', function () {
+    if ($('.toc').length) {
+      tocbot.destroy();
+    }
+  });
+
+  document.addEventListener('pjax:complete', function () {
+    if ($('.toc').length) {
+      tocbot.init(option);
+      mobileTocClick();
+    }
+  });
+  
+  // 手机端toc按钮点击出现目录
+  const mobileTocClick = function () {
+    const $cardTocLayout = document.getElementsByClassName('side_toc')[0];
+    const $cardToc = $cardTocLayout.getElementsByClassName('toc-content')[0];
+    let right = '45px';
+    if (window.innerWidth >= 551 && window.innerWidth <= 992) {
+      right = '100px'
+    }
+    const mobileToc = {
+      open: () => {
+        $cardTocLayout.style.cssText = 'animation: toc-open .3s; opacity: 1; right: ' + right
+      },
+
+      close: () => {
+        $cardTocLayout.style.animation = 'toc-close .2s'
+        setTimeout(() => {
+          $cardTocLayout.style.cssText = "opacity:''; animation: ''; right: ''"
+        }, 100)
+      }
+    }
+    document.getElementById('toc-mobile-btn').addEventListener('click', () => {
+      if (window.getComputedStyle($cardTocLayout).getPropertyValue('opacity') === '0') mobileToc.open()
+      else mobileToc.close()
+    })
+
+    $cardToc.addEventListener('click', (e) => {
+      if (window.innerWidth < 992) { // 小于992px的时候
+        mobileToc.close()
+      }
+    })
+  }
+</script>
+
+<style>
+  /* .is-position-fixed {
+    position: sticky !important;
+    top: 74px;
+  }
+
+  .toc-main ul {
+    counter-reset: show-list;
+  }
+
+  .toc-main ul li::before {
+    content: counter(item)".";
+    display: block;
+    position: absolute;
+    left: 12px;
+    top: 0;
+  } */
+</style>
+ 
+
+<!-- 设置导航背景 -->
+<script>
+  let setHeaderClass = () => {
+    const nav = $('#navHeader');
+    const navTop = nav.outerHeight();
+    const winTop = $(window).scrollTop();
+    if(winTop > navTop) {
+      nav.addClass('header-bg-color');
+    }
+    else {
+      nav.removeClass('header-bg-color');
+    }
+  };
+
+  let scrollCollect = () => {
+    return bamboo.throttle(function (e) {
+      setHeaderClass();
+    }, 200)()
+  }
+
+  let initHeaderBg = () => {
+    setHeaderClass();
+  }
+
+  setHeaderClass();
+  window.addEventListener('scroll', scrollCollect);
+
+  document.addEventListener('pjax:send', function () {
+    window.removeEventListener('scroll', scrollCollect)
+  })
+  document.addEventListener('pjax:complete', function () {
+    window.addEventListener('scroll', scrollCollect);
+    setHeaderClass();
+  })
+</script> 
+
+<!-- 渲染issues标签里的内容 -->
+<script>
+  function loadIssuesJS() {
+    if ($(".post-detail").find(".issues-api").length == 0) {
+      return;
+    } 
+    loadScript('/js/issues/index.js');
+  };
+  $(function () {
+    loadIssuesJS();
+  });
+  document.addEventListener('pjax:complete', function () {
+    if (typeof IssuesAPI == "undefined") {
+      loadIssuesJS();
+    }
+  })
+</script>
+
+<!-- 渲染远程json加载的图片标签(getPhotoOnline)里的内容 -->
+<script>
+  function loadPhotoOnlineJS() {
+    if ($(".post-detail").find(".getJsonPhoto-api").length == 0) {
+      return;
+    } 
+    loadScript('/js/getPhotoOnline/index.js');
+  };
+  $(function () {
+    loadPhotoOnlineJS();
+  });
+  document.addEventListener('pjax:complete', function () {
+    if (typeof getPhotoJson == "undefined") {
+      loadPhotoOnlineJS();
+    }
+  })
+</script>
+
+<!-- 渲染远程json加载的talk标签(getTalkOnline)里的内容 -->
+<script>
+  function loadTalkOnlineJS() {
+    if ($(".post-detail").find(".getJsonTalk-api").length == 0) {
+      return;
+    } 
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/waterfall.js/1.0.2/waterfall.min.js'); // 瀑布流插件，https://raphamorim.io/waterfall.js/
+    loadScript('/js/getTalkOnline/index.js');
+  };
+  $(function () {
+    loadTalkOnlineJS();
+  });
+  document.addEventListener('pjax:complete', function () {
+    if (typeof getTalkJson == "undefined") {
+      loadTalkOnlineJS();
+    }
+  })
+</script>
+
+<!-- 渲染远程json加载的site-card标签(getSiteOnline)里的内容 -->
+<script>
+  function loadSiteOnlineJS() {
+    if ($(".post-detail").find(".getJsonSite-api").length == 0) {
+      return;
+    } 
+    loadScript('/js/getSiteOnline/index.js');
+  };
+  $(function () {
+    loadSiteOnlineJS();
+  });
+  document.addEventListener('pjax:complete', function () {
+    if (typeof getSiteJson == "undefined") {
+      loadSiteOnlineJS();
+    }
+  })
+</script>
+
+<!-- 输入框打字特效 -->
+<!-- 输入框打字特效 -->
+
+  <script src="/js/activate-power-mode.js"></script>
+  <script>
+    POWERMODE.colorful = true;  // 打开随机颜色特效
+    POWERMODE.shake = false;    // 关闭输入框抖动
+    document.body.addEventListener('input', POWERMODE);//监听打字事件
+  </script>
+
+
+<!-- markdown代码一键复制功能 -->
+
+  <link rel="stylesheet" href="https://unpkg.com/v-plugs-ayu/lib/ayu.css">
+  <script src="https://unpkg.com/v-plugs-ayu/lib/ayu.umd.min.js"></script>
+  <script src="/js/clipboard/clipboard.min.js"></script>
+  <div id="appCopy">
+  </div>
+  <script data-pjax>
+    var vm = new Vue({
+      el: '#appCopy',
+      data: {
+      },
+      computed: {
+      },
+      mounted() {
+        const that = this;
+        var copy = 'copy';
+        /* code */
+        var initCopyCode = function () {
+          var copyHtml = '';
+          copyHtml += '<button class="btn-copy" data-clipboard-snippet="" style="position:absolute;top:0;right:0;z-index:1;">';
+          copyHtml += '<i class="fas fa-copy"></i><span>' + copy + '</span>';
+          copyHtml += '</button>';
+          $(".post-detail pre").not('.gutter pre').wrap("<div class='codeBox' style='position:relative;width:100%;'></div>")
+          $(".post-detail pre").not('.gutter pre').before(copyHtml);
+          new ClipboardJS('.btn-copy', {
+            target: function (trigger) {
+              return trigger.nextElementSibling;
+            }
+          });
+        }
+        initCopyCode();
+        $('.btn-copy').unbind('click').bind('click', function () {
+          doSomething();
+        })
+        $(document).unbind('keypress').bind('keypress', function (e) {
+          if (e.ctrlKey && e.keyCode == 67) {
+            doSomething();
+          }
+        })
+
+        function doSomething() {
+          that.$notify({
+            title: "成功",
+            content: "代码已复制，请遵守相关授权协议。",
+            type: 'success'
+          })
+        }
+      },
+      methods: {
+      },
+      created() { }
+    })
+  </script>
+  
+
+<!-- 图片懒加载 -->
+<script defer src="https://unpkg.com/vanilla-lazyload@17.1.0/dist/lazyload.min.js"></script>
+<script>
+  // https://www.npmjs.com/package/vanilla-lazyload
+  // Set the options globally
+  // to make LazyLoad self-initialize
+  window.lazyLoadOptions = {
+    elements_selector: ".lazyload",
+    threshold: 0
+  };
+  // Listen to the initialization event
+  // and get the instance of LazyLoad
+  window.addEventListener(
+    "LazyLoad::Initialized",
+    function (event) {
+      window.lazyLoadInstance = event.detail.instance;
+    },
+    false
+  );
+  document.addEventListener('DOMContentLoaded', function () {
+    lazyLoadInstance.update();
+  });
+  document.addEventListener('pjax:complete', function () {
+    lazyLoadInstance.update();
+  });
+</script>
+
+
+<!-- 卡片滚动动画 -->
+   
+
+<!-- 评论所需js -->
+
+  
+        <script type="text/javascript">
+  var utteranceComment = {};
+
+  function check_utterance() {
+    let isDark = JSON.parse(localStorage.getItem('dark')) || JSON.parse('false');
+    if (isDark) {
+      utteranceComment.Theme = 'github-dark';
+    } else {
+      utteranceComment.Theme = 'github-light';
+    }
+
+    return document.getElementById("gitment-container");
+  }
+  comment_el = '#gitment-container';
+  load_utterance = function () {
+    if ($(comment_el).length) {
+      // 匿名函数，防止污染全局变量
+      const HEAD = check_utterance();
+
+      var utterances = document.createElement('script');
+      utterances.type = 'text/javascript';
+      utterances.async = true;
+      utterances.setAttribute('issue-term', 'pathname')
+      utterances.setAttribute('theme', utteranceComment.Theme)
+      utterances.setAttribute('repo', '')
+      utterances.crossorigin = 'anonymous';
+      utterances.src = 'https://utteranc.es/client.js';
+      // content 是要插入评论的地方
+      document.getElementById('gitment-container').appendChild(utterances);
+
+    }
+  }
+
+  function dark_utterance() {
+    const HEAD = check_utterance();
+    if (!HEAD) return;
+    const message = {
+      type: 'set-theme',
+      theme: utteranceComment.Theme
+    };
+    const utteranceIframe = document.querySelector('iframe');
+    utteranceIframe.contentWindow.postMessage(message, 'https://utteranc.es');
+  }
+
+  $(document).ready(load_utterance);
+  document.addEventListener('pjax:complete', function () {
+    load_utterance();
+  });
+
+  $('.dark').click(function () {
+    setTimeout(() => {
+      dark_utterance();
+    });
+  })
+
+</script>
+
+<style>
+  .utterances {
+    max-width: inherit !important;
+  }
+</style>
+      
+
+
+<!-- 鼠标点击特效 -->
+<!-- 爱心点击 -->
+
+  
+    <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 999; pointer-events: none;" ></canvas>
+    <script async src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script>
+    <script async src="/js/cursor/explosion.min.js"></script>
+  
+
+
+
+
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" data-pjax></script>
+
+
+<!-- 轮播图标签 -->
+<script>
+  var bambooSwiperTag = {};
+  function load_swiper() {
+    if (!document.querySelectorAll(".post-swiper-container")[0]) return;
+    loadCSS("https://unpkg.com/swiper@6/swiper-bundle.min.css")
+    loadScript("https://unpkg.com/swiper@6/swiper-bundle.min.js").then(() => {
+      pjax_swiper();
+    });
+  }
+
+  load_swiper();
+
+  function pjax_swiper() {
+    bambooSwiperTag.swiper = new Swiper('.post-swiper-container', {
+      slidesPerView: 'auto',
+      spaceBetween: 8,
+      centeredSlides: true,
+      loop: true,
+      autoplay: true ? {
+        delay: 3000,
+        stopOnLastSlide: false,
+        disableOnInteraction: false,
+      } : false,
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+      on:{
+        init: function(){
+          swiperAnimateCache(this); //隐藏动画元素 
+          swiperAnimate(this); //初始化完成开始动画
+        }, 
+        slideChangeTransitionEnd: function(){ 
+          swiperAnimate(this); //每个slide切换结束时也运行当前slide动画
+          //this.slides.eq(this.activeIndex).find('.ani').removeClass('ani'); 动画只展现一次，去除ani类名
+        } 
+      }
+    });
+  }
+
+  document.addEventListener('pjax:complete', function () {
+    if (!document.querySelectorAll(".post-swiper-container")[0]) return;
+    if (typeof bambooSwiperTag.swiper === "undefined") {
+      load_swiper();
+    } else {
+      pjax_swiper();
+    }
+  });
+</script>
+    <!-- pjax -->
+    
+
+<!-- pjax -->
+
+
+  <script src="/js/pjax@0.2.8/index.js"></script>
+  
+    <div class="pjax-animate">
+  
+    <div class="loading-circle"><div id="loader-circle"></div></div>
+    <script>
+      window.ShowLoading = function() {
+        $(".loading-circle").css("display", "block");
+      };
+      window.HideLoading = function() {
+        $(".loading-circle").css("display", "none");
+      }
+    </script>
+  
+	<script>
+    document.addEventListener('pjax:complete', function () {
+      window.HideLoading();
+    })
+    document.addEventListener('pjax:send', function () {
+      window.ShowLoading();
+    })
+    document.addEventListener('pjax:error', function () {
+      window.HideLoading();
+    })
+	</script>
+</div>
+
+  
+
+  <script>
+    var pjax = new Pjax({
+      elements: 'a[href]:not([href^="#"]):not([href="javascript:void(0)"]):not([no-pjax])',   // 拦截正常带链接的 a 标签
+      selectors: ["#pjax-container","title"],                                   // 根据实际需要确认重载区域
+      cacheBust: false,   // url 地址追加时间戳，用以避免浏览器缓存
+      timeout: 5000
+    });
+
+    document.addEventListener('pjax:send', function (e) {
+
+      try {
+        var currentUrl = window.location.pathname;
+        var targetUrl = e.triggerElement.href;
+        var banUrl = [""];
+        if (banUrl[0] != "") {
+          banUrl.forEach(item => {
+            if(currentUrl.indexOf(item) != -1 || targetUrl.indexOf(item) != -1) {
+              window.location.href = targetUrl;
+            }
+          });
+        }
+      } catch (error) {}
+
+      $(window).unbind('resize');
+      $(window).unbind('scroll');
+      $(document).unbind('scroll');
+      $(document).unbind('click');
+      $('body').unbind('click');
+
+    })
+    
+    document.addEventListener('pjax:complete', function () {
+      $('script[data-pjax], .pjax-reload script').each(function () {
+        $(this).parent().append($(this).remove());
+      });
+    });
+
+    document.addEventListener('pjax:error', function (e) {
+      window.location.href = e.triggerElement.href;
+    })
+    
+    // 刷新不从顶部开始
+    document.addEventListener("DOMContentLoaded", function () {
+      history.scrollRestoration = 'auto';
+    })
+  </script>
+
+
+
+  </body>
+</html>
