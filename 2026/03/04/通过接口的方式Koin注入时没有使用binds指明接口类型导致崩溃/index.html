@@ -11,7 +11,7 @@
   <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-  <title>Recyclerview回收复用机制——图文详解 | Penghc_Blog</title>
+  <title>通过接口的方式Koin注入时没有使用binds指明接口类型导致崩溃 | Penghc_Blog</title>
 
   <link rel="icon" type="image/x-icon, image/vnd.microsoft.icon" href="/favicon.ico">
   <link rel="stylesheet" href="https://at.alicdn.com/t/font_1911880_c1nvbyezg17.css">
@@ -412,21 +412,21 @@
 
 
 <div class="post-detail-header" id="thumbnail_canvas" style="background-repeat: no-repeat; background-size: cover; 
-  background-position: center center;position: relative;background-image:url('https://pica.zhimg.com/80/v2-573ac3e25de03fad9c32add5a05e5cfc_1440w.webp')">
+  background-position: center center;position: relative;background-image:url('https://picx.zhimg.com/80/v2-9c50d3af0bc62a0e8b6e89e24c769317_1440w.webp')">
   <div class="post-detail-header-mask"></div>
   <canvas id="header_canvas"style="position:absolute;bottom:0;pointer-events:none;"></canvas>
   
   <div class="post-detail-header_info-box">
     <div class="title-box">
       <span class="title">
-        Recyclerview回收复用机制——图文详解
+        通过接口的方式Koin注入时没有使用binds指明接口类型导致崩溃
       </span>
     </div>
     
     
       
         <span class="post-detail-header_date">
-          <i class="fas fa-calendar"></i> Published in：2026-03-03 |
+          <i class="fas fa-calendar"></i> Published in：2026-03-04 |
         </span>
       
 
@@ -450,34 +450,32 @@
   <div class="main-content">
     <article class="post post-detail">
       <div class="post-content">
-        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近在开发大图预览页时，利用了Recyclerview滑动特性，将每张图片作为一个itemView，布局为填充整个屏幕（即一个itemView占据了整个屏幕），示意图如下：<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/07342634c89148879c687ea5dc553a32.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/07342634c89148879c687ea5dc553a32.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>这么做的好处是，无需设置复杂的滑动手势逻辑。但在交付体验时发现，当用户滑动很快时，itemView加载的速度较慢，除了网速原因还有一个不可忽视的case是RV的缓存机制：<br>mCachedView的默认容量为2，mRecyclerPool的默认缓存容量为5<br>快速滑动时，mCachedView的容量很快就会被消耗，从而将ViewHolder放到mRecyclerPool缓存中，再次获取对应的itemView时又需要重新<strong>onCreateViewHolder和onBindViewHolder</strong>，这样的耗时又增加了很多<br>解决方法也好办，可以考虑扩充下mCachedView的默认容量，即</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">recyclerView.setItemViewCacheSize(<span class="number">5</span>) <span class="comment">// 扩充mCachedView的默认容量</span></span><br></pre></td></tr></table></figure>
-<p>借着这次需求，刚好我们可以详细复习一下Recyclerview的缓存机制。于是有了此文。</p>
-<h2 id="一、核心机制"><a href="#一、核心机制" class="headerlink" title="一、核心机制"></a>一、核心机制</h2><p>RecyclerView的缓存机制主要由四级缓存构成，分别是<strong>mAttachedScrap、mCachedViews、mViewCacheExtension和mRecyclerPool</strong>。每一级缓存都有其独特的功能和适用场景，它们相互协作，共同实现高效的视图缓存与复用。<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/a8ee38dbb7ea4383bb2fd24f6f6cfb2d.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/a8ee38dbb7ea4383bb2fd24f6f6cfb2d.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>RecyclerView的缓存机制又称回收复用机制，RecyclerView构建列表视图分为以下三步：</p>
-<ol>
-<li>Create View Holder，创建ViewHolder</li>
-<li>Bind View Holder，绑定ViewHolder数据</li>
-<li>Render View Holder，ViewHolder渲染到页面<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/860f5d4ca7bf48fa861f4da7c56ef1a2.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/860f5d4ca7bf48fa861f4da7c56ef1a2.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>第一步的<strong>创建ViewHolder是RecyclerView构建视图时最耗时的操作</strong>，而RecyclerView正是因为做到了缓存复用，从而减少调用创建ViewHolder的次数。</li>
-</ol>
-<h2 id="二、缓存区"><a href="#二、缓存区" class="headerlink" title="二、缓存区"></a>二、缓存区</h2><h3 id="2-1-mCachedView"><a href="#2-1-mCachedView" class="headerlink" title="2.1 mCachedView"></a>2.1 mCachedView</h3><p>当列表被创建时结构如下，每个ViewHolder中的A、B代表不同的View种类（ViewType）：<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/fb261177610f4679a3e839ee31b3af0c.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/fb261177610f4679a3e839ee31b3af0c.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>当我们滚动第一个ViewHolder（此处简称p0）到屏幕以外时，它会被存入<strong>mCachedViews</strong>中：<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/2e63e55fdae24d5190dc0703e89a3800.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/2e63e55fdae24d5190dc0703e89a3800.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>此处被回收的p0依旧保存着之前的数据，各种内部状态没有被重置。<br>如果我们向上滚动，被缓存的p0会从mCachedViews缓存区中移回列表：<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/dfe228eefc3145ec99c4c2b3ed892da3.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/dfe228eefc3145ec99c4c2b3ed892da3.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>因此不需要重复CreateViewHolder和BindViewHolder，减少了耗时。<br>可见，缓存区是用来存储最近离开屏幕区的ViewHolder。 这些ViewHolder因为出于屏幕区的边界，更容易因为用户的滚动和抖动被重新显示，因此更需要被快速的加载到视图中。<br><strong>缓存区存储ViewHolder的默认大小为2</strong>，开发者可根据实际需求更改大小。</p>
-<h3 id="2-2-mRecyclerPool"><a href="#2-2-mRecyclerPool" class="headerlink" title="2.2 mRecyclerPool"></a>2.2 mRecyclerPool</h3><p>当缓存区已满，而有新的ViewHolder被放入缓存区时，最先被置入缓存区的ViewHolder会被移到mRecyclerPool中：<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/91b3237b8a03425b91faf8ef11b766d0.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/91b3237b8a03425b91faf8ef11b766d0.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>进入mRecyclerPool的ViewHolder各种内部状态会被重置，如position会被置为-1，可理解为与之前的数据已解绑；图中的A和B表示不同的ViewType，每个能存储5个ViewHolder，这个大小也是可以被修改的。</p>
-<h3 id="2-3-移入ViewHolder过程"><a href="#2-3-移入ViewHolder过程" class="headerlink" title="2.3 移入ViewHolder过程"></a>2.3 移入ViewHolder过程</h3><p>分析完列表移出ViewHolder的过程，我们反过来看移入ViewHolder的：<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/c10042c29c7c499c9936d8e3603a83e8.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/c10042c29c7c499c9936d8e3603a83e8.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>假设此时有一个新的类型为B的ViewHolder（简称p7）要移入屏幕区。<br>首先查看缓存区中是否有可以复用的ViewHolder。这是因为被放入此处的ViewHolder是不需要重置数据的，因此优先考虑这里的ViewHolder，如果有相同的position，就会被取出复用。此处的逻辑和前面p0重新移入的逻辑相同；<br>图中的例子position&#x3D;7，与缓存区中的两个ViewHolder的position都不相同，因此无法复用；接下来查看循环池中的ViewHolder。因为View类型为B的循环池中没有ViewHolder，所以依然无法复用；此时我们只能重新走Create和Bind的方法。<br>如果循环池中有相同类型的ViewHolder：<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/5e7a9bbbb9b14235b2dc12f87bac9925.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/5e7a9bbbb9b14235b2dc12f87bac9925.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>会从循环池中取出复用，因为被放入循环池中的ViewHolder都是被重置了的，虽然不用走Create方法，但是重新的Bind还是要有的。</p>
-<h2 id="Q-A"><a href="#Q-A" class="headerlink" title="Q &amp; A"></a>Q &amp; A</h2><h3 id="为什么不能随意扩大cachedView的默认容量"><a href="#为什么不能随意扩大cachedView的默认容量" class="headerlink" title="为什么不能随意扩大cachedView的默认容量"></a>为什么不能随意扩大cachedView的默认容量</h3><ul>
-<li><strong>内存消耗显著上升</strong><br>  mCachedViews 中的 ViewHolder 会完整保留 View 实例及其子 View（如 ImageView、TextView 等）的引用，且不会释放绑定的数据（如图片 Bitmap、文本内容）。若容量过大（如超过 20），尤其是 Item 布局复杂或包含大图时，会导致内存占用激增，可能引发 OOM（内存溢出），尤其是在低内存设备上。</li>
-<li><strong>缓存管理开销增加</strong><br>mCachedViews 采用 LRU（最近最少使用） 策略淘汰旧缓存：当容量满时，每次新增 ViewHolder 都需要移除最久未使用的实例。容量过大时，LRU 维护的链表操作（插入、删除）会消耗更多 CPU 资源，反而可能降低性能。</li>
-<li><strong>可能降低 RecycledViewPool 的利用率</strong><br>mCachedViews 和 RecycledViewPool 存在 “竞争关系”：ViewHolder 优先进入 mCachedViews，只有当 mCachedViews 满了，才会被移至 RecycledViewPool。若 mCachedViews 容量过大，会导致 RecycledViewPool 中的缓存减少，而 RecycledViewPool 的缓存是跨 ViewType 共享的（在多列表场景下更有价值），间接降低整体缓存效率。</li>
-</ul>
-<h3 id="RecyclerPool是否可以只用一种ViewType？"><a href="#RecyclerPool是否可以只用一种ViewType？" class="headerlink" title="RecyclerPool是否可以只用一种ViewType？"></a>RecyclerPool是否可以只用一种ViewType？</h3><p>对于不同的ViewType我们有不同的循环池，那我们是否可以只用一种ViewType，延长这一个循环池，提高回收复用率？</p>
-<ul>
-<li>首先是可读性和可维护性会变差。因为不同的ViewType通常数据结构和视图样式方式不同，如果为了让一种ViewType都适配他们，代码肯定会变得很乱。</li>
-<li>其次是不用懒加载，增加调用耗时；使用懒加载，无法避免视图切换耗时。首先因为ViewType的数据结构和视图样式等诸多内容不尽相同，如果一次全部加载内存开销必然很大，因此我们使用懒加载的方式最为合适，只有需要的时候才取出使用；但因为我们把原本应该设计为不同的ViewType都塞进了一个ViewType，导致会一次加载所有原本不同的ViewType，无法使用懒加载避免这一现象；</li>
-<li>而同时因为ViewType视图样式不同，肯定要重新inflate不同的视图样式，根本没有减少耗时。</li>
-</ul>
-<h3 id="RecyclerView缓存机制失效的情况"><a href="#RecyclerView缓存机制失效的情况" class="headerlink" title="RecyclerView缓存机制失效的情况"></a>RecyclerView缓存机制失效的情况</h3><p>重写Adapter的onFailedToRecycleView<br>首先查看RecyclerView的源码：<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/7b74f5d3bebf47718b17374c0fc1082f.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/7b74f5d3bebf47718b17374c0fc1082f.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>在是否回收ViewHolder的判断中包含两个条件：boolean值forceRecycle和isRecyclable方法。我们首先查看后者代码：<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/a749afcbef114eb492dabf3dbf79d638.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/a749afcbef114eb492dabf3dbf79d638.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>后者的isRecyclable方法获取到的是一个名为TransientState的值（直译：临时状态）。当某个ViewHolder中的某个View在做属性动画时，这个值会属性动画开始和结束时被设置：<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/ed6ba2e82cbb4a708964f3edd049bed0.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/ed6ba2e82cbb4a708964f3edd049bed0.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>这么来说，如果一个ViewHolder在离开显示区时，同时内部有任意一个view在做属性动画，TransientState的值就会是false，isRecyclable方法返回的也是false，这个ViewHolder就无法被存储到缓存区或循环池中。<br>这种情况最容易出现在<strong>ViewHolder中存在循环属性动画的场景</strong>。如果没有对这个循环属性动画做处理，那么就会出现缓存机制失效的情况。如dy中的专辑旋转动画：<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/eda6f9326ad940638578a7dc2fcb4a1f.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/eda6f9326ad940638578a7dc2fcb4a1f.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述">而是否回收ViewHolder的判断中，前者forceRecycle是根据onFailedToRecycleView方法设定的，我们可以重写这个方法：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onFailedToRecycleView</span><span class="params">(holder: <span class="type">MyViewHolder</span>?)</span></span>: <span class="built_in">Boolean</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><strong>onBindViewHolder中重置View的动画属性</strong><br>为什么Android要设计ViewHolder中的View的属性动画不能被回收，要我们如此大费周章？<br>这么设计的原因是防止ViewHolder被复用时之前的动画状态被保留。因此我们可以在重新绑定ViewHolder的onBindViewHolder方法中，重置View的动画属性，如偏转角度（Rotation）、透明度（Alpha）等。</p>
+        <h2 id="1-崩溃堆栈"><a href="#1-崩溃堆栈" class="headerlink" title="1 崩溃堆栈"></a>1 崩溃堆栈</h2><p>显示没有定义ITagSearchTrackHelper接口的实现</p>
 <blockquote>
-<p><strong>RecyclerView的特殊复用机制</strong><br>循环池（mRecyclerPool）可以服务于多个RecyclerView。当其他RecyclerView中拥有循环池中相同的ViewType时，他们都可以使用这个循环池。</p>
+<p>org.koin.core.error.NoBeanDefFoundException: |- No definition found for class:’com.xxx.track.ITagSearchTrackHelper’. Check your definitions!</p>
+</blockquote>
+<h2 id="2-问题复现"><a href="#2-问题复现" class="headerlink" title="2 问题复现"></a>2 问题复现</h2><ol>
+<li>在父节点中向子节点抛出了searchResultTrackHelper实例<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/56cfd6b2dc56403db34f4889ca17de41.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/56cfd6b2dc56403db34f4889ca17de41.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"><br>其中searchResultTrackHelper为SearchNoteTrackHelper类型<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/37569bd11c114818800217ac47acf492.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/37569bd11c114818800217ac47acf492.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"></li>
+<li>SearchNoteTrackHelper是一个接口，继承了IBaseResultTrackHelper、ITagSearchTrackHelper和IFilterPanelTrackHelper接口<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/73f3d5f820e849c496f393beb85de591.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/73f3d5f820e849c496f393beb85de591.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"></li>
+<li>在TagSearchItemRootSectionGroup中注入了ITagSearchTrackHelper类型的trackHelper<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/63893122fab746ae878e2e278813a32a.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/63893122fab746ae878e2e278813a32a.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"></li>
+<li>当点击tag search的item项时就发生了崩溃</li>
+</ol>
+<h2 id="3-问题分析"><a href="#3-问题分析" class="headerlink" title="3 问题分析"></a>3 问题分析</h2><h3 id="3-1-Kolin注入的核心机制"><a href="#3-1-Kolin注入的核心机制" class="headerlink" title="3.1 Kolin注入的核心机制"></a>3.1 Kolin注入的核心机制</h3><ul>
+<li>Koin 的“定义注册表”是用三元组做键：类型 KClass + 可选 qualifier + scope。</li>
+<li>你写 scoped { searchResultTrackHelper } 时，Koin只会以“实现类的具体类型”注册该实例，比如 SearchNoteTrackHelper。</li>
+<li>依赖解析时，<code>injectFrom&lt;ITagSearchTrackHelper&gt;()</code> 会用“接口类型”当 key 去查。因为注册表里只有“具体类”的键，没有“接口”的键，故报NoBeanDefFoundException的错误。</li>
+</ul>
+<h3 id="3-2-binds-的作用"><a href="#3-2-binds-的作用" class="headerlink" title="3.2 binds 的作用"></a>3.2 binds 的作用</h3><ul>
+<li>binds arrayOf(ITagSearchTrackHelper::class) 会在同一条定义上为该实例额外注册“别名类型”。等价于把这一个实例同时挂到多个类型键上：<ul>
+<li>SearchResultNoteController（实现类）</li>
+<li><strong>ITagSearchTrackHelper</strong>（接口）</li>
+</ul>
+</li>
+<li>因此，不管你用实现类还是接口去 inject，都能匹配到同一个实例。</li>
+</ul>
+<h2 id="4-解决方法"><a href="#4-解决方法" class="headerlink" title="4 解决方法"></a>4 解决方法</h2><p>新增<strong>ITagSearchTrackHelper</strong>接口类型映射<br><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/c943435c94a440958d914582268656af.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/c943435c94a440958d914582268656af.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="在这里插入图片描述"></p>
+<blockquote>
+<p>报错的根因是“<strong>按接口查找，但注册时没有把实例声明为接口类型</strong>”。加上 binds 就是给实例增加“接口类型别名”，让 Koin 的类型匹配成立，解析自然通过。</p>
 </blockquote>
 
       </div>
@@ -485,12 +483,12 @@
         
         <div class="tags">
           
-            <a href="/tags/Android/" class="">
-              Android
+            <a href="/tags/koin%E6%B3%A8%E5%85%A5/" class="">
+              koin注入
             </a>
           
-            <a href="/tags/Recyclerview/" class="">
-              Recyclerview
+            <a href="/tags/%E4%BE%9D%E8%B5%96%E5%8F%8D%E8%BD%AC/" class="">
+              依赖反转
             </a>
           
         </div>
@@ -504,7 +502,7 @@
     </li>
     <li class="post-copyright-link">
     <strong>link:  </strong>
-    <a href="/2026/03/03/Recyclerview回收复用机制——图文详解/" target="_blank" title="Recyclerview回收复用机制——图文详解">http://example.com/2026/03/03/Recyclerview回收复用机制——图文详解/</a>
+    <a href="/2026/03/04/通过接口的方式Koin注入时没有使用binds指明接口类型导致崩溃/" target="_blank" title="通过接口的方式Koin注入时没有使用binds指明接口类型导致崩溃">http://example.com/2026/03/04/通过接口的方式Koin注入时没有使用binds指明接口类型导致崩溃/</a>
     </li>
     <li class="post-copyright-license">
       <strong>Copyright notice:   </strong>
@@ -526,18 +524,16 @@
   <div class="post-nav-prev post-nav-item">
     <div class="post-nav-img" style="background-size: cover; 
       background-position: center center;">
-      <img class="lazyload lazyload placeholder" src="https://picx.zhimg.com/80/v2-9c50d3af0bc62a0e8b6e89e24c769317_1440w.webp" class="lazyload placeholder" data-srcset="https://picx.zhimg.com/80/v2-9c50d3af0bc62a0e8b6e89e24c769317_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+      <img class="lazyload lazyload placeholder" src="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" class="lazyload placeholder" data-srcset="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
     </div>
-    <a href="/2026/03/04/%E9%80%9A%E8%BF%87%E6%8E%A5%E5%8F%A3%E7%9A%84%E6%96%B9%E5%BC%8FKoin%E6%B3%A8%E5%85%A5%E6%97%B6%E6%B2%A1%E6%9C%89%E4%BD%BF%E7%94%A8binds%E6%8C%87%E6%98%8E%E6%8E%A5%E5%8F%A3%E7%B1%BB%E5%9E%8B%E5%AF%BC%E8%87%B4%E5%B4%A9%E6%BA%83/" class="post-nav-link">
+    <a href="/2026/03/04/%E5%AF%B9%E7%85%A7%E7%BB%84%E8%B4%A6%E5%8F%B7%E5%88%87%E5%AE%9E%E9%AA%8C%E7%BB%84%E8%B4%A6%E5%8F%B7%E5%B4%A9%E6%BA%83%E9%97%AE%E9%A2%98%E5%A4%8D%E6%9F%A5/" class="post-nav-link">
       <div class="title">
         <i class="fas fa-angle-left"></i> Prev:
-        <div class="title-text">通过接口的方式Koin注入时没有使用binds指明接口类型导致崩溃</div>
+        <div class="title-text">对照组账号切实验组账号崩溃问题复查</div>
       </div>
       
       <!-- <div class="content">
-        1 崩溃堆栈显示没有定义ITagSearchTrackHelper接口的实现
-
-org.koin.core.error.
+        在做新增图片tab需求的时候，需要按照规范，将tab对应的配置（即tabConfig）加上，然后创建该tab下的Frag
       </div> -->
     </a>
   </div>
@@ -548,15 +544,15 @@ org.koin.core.error.
   <div class="post-nav-next post-nav-item">
     <div class="post-nav-img" style="background-size: cover; 
       background-position: center center;">
-      <img class="lazyload lazyload placeholder" src="https://pic4.zhimg.com/80/v2-83ea273b88e119d9615aed0d89aad4ab_1440w.webp" class="lazyload placeholder" data-srcset="https://pic4.zhimg.com/80/v2-83ea273b88e119d9615aed0d89aad4ab_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" src="" alt="">
+      <img class="lazyload lazyload placeholder" src="https://pica.zhimg.com/80/v2-573ac3e25de03fad9c32add5a05e5cfc_1440w.webp" class="lazyload placeholder" data-srcset="https://pica.zhimg.com/80/v2-573ac3e25de03fad9c32add5a05e5cfc_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" src="" alt="">
     </div>
-    <a href="/2026/03/03/%E5%AE%9E%E7%8E%B0Activity%E8%B7%B3%E8%BD%AC%E5%8A%A8%E7%94%BB%E7%9A%84%E6%96%B9%E5%BC%8F%EF%BC%88%E5%85%B1%E4%BA%AB%E7%BB%84%E4%BB%B6%E6%96%B9%E5%BC%8F%EF%BC%89/" class="post-nav-link">
+    <a href="/2026/03/03/Recyclerview%E5%9B%9E%E6%94%B6%E5%A4%8D%E7%94%A8%E6%9C%BA%E5%88%B6%E2%80%94%E2%80%94%E5%9B%BE%E6%96%87%E8%AF%A6%E8%A7%A3/" class="post-nav-link">
       <div class="title">
         Next: <i class="fas fa-angle-right"></i>
-        <div class="title-text">实现Activity跳转动画的方式（共享组件方式）</div>
+        <div class="title-text">Recyclerview回收复用机制——图文详解</div>
       </div>
       <!-- <div class="content">
-        相信大部分的Android开发者都已经知道Activity的跳转方式（eg：通过intent跳转），也见过市面上app页
+        前言最近在开发大图预览页时，利用了Recyclerview滑动特性，将每张图片作为一个itemView，布局为填充整个屏
       </div> -->
     </a>
   </div>
@@ -778,7 +774,7 @@ org.koin.core.error.
   <div class='content'>
     <div class="toc-main">
       <div class="toc-content">
-        <!-- <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%A0%B8%E5%BF%83%E6%9C%BA%E5%88%B6"><span class="toc-text">一、核心机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%BC%93%E5%AD%98%E5%8C%BA"><span class="toc-text">二、缓存区</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-mCachedView"><span class="toc-text">2.1 mCachedView</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-mRecyclerPool"><span class="toc-text">2.2 mRecyclerPool</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E7%A7%BB%E5%85%A5ViewHolder%E8%BF%87%E7%A8%8B"><span class="toc-text">2.3 移入ViewHolder过程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Q-A"><span class="toc-text">Q &amp; A</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E9%9A%8F%E6%84%8F%E6%89%A9%E5%A4%A7cachedView%E7%9A%84%E9%BB%98%E8%AE%A4%E5%AE%B9%E9%87%8F"><span class="toc-text">为什么不能随意扩大cachedView的默认容量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RecyclerPool%E6%98%AF%E5%90%A6%E5%8F%AF%E4%BB%A5%E5%8F%AA%E7%94%A8%E4%B8%80%E7%A7%8DViewType%EF%BC%9F"><span class="toc-text">RecyclerPool是否可以只用一种ViewType？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RecyclerView%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6%E5%A4%B1%E6%95%88%E7%9A%84%E6%83%85%E5%86%B5"><span class="toc-text">RecyclerView缓存机制失效的情况</span></a></li></ol></li></ol> -->
+        <!-- <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%B4%A9%E6%BA%83%E5%A0%86%E6%A0%88"><span class="toc-text">1 崩溃堆栈</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E9%97%AE%E9%A2%98%E5%A4%8D%E7%8E%B0"><span class="toc-text">2 问题复现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90"><span class="toc-text">3 问题分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-Kolin%E6%B3%A8%E5%85%A5%E7%9A%84%E6%A0%B8%E5%BF%83%E6%9C%BA%E5%88%B6"><span class="toc-text">3.1 Kolin注入的核心机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-binds-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-text">3.2 binds 的作用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95"><span class="toc-text">4 解决方法</span></a></li></ol> -->
         <div class="toc"></div>
       </div>
     </div>
