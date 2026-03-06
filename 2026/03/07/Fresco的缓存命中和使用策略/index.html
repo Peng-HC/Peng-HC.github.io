@@ -11,7 +11,7 @@
   <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-  <title>Hello World | Penghc_Blog</title>
+  <title>Penghc_Blog</title>
 
   <link rel="icon" type="image/x-icon, image/vnd.microsoft.icon" href="/favicon.ico">
   <link rel="stylesheet" href="https://at.alicdn.com/t/font_1911880_c1nvbyezg17.css">
@@ -412,21 +412,21 @@
 
 
 <div class="post-detail-header" id="thumbnail_canvas" style="background-repeat: no-repeat; background-size: cover; 
-  background-position: center center;position: relative;background-image:url('https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp')">
+  background-position: center center;position: relative;background-image:url('https://pic1.zhimg.com/80/v2-03a22891ccba9bccf6424dfd7cbf4be7_1440w.webp')">
   <div class="post-detail-header-mask"></div>
   <canvas id="header_canvas"style="position:absolute;bottom:0;pointer-events:none;"></canvas>
   
   <div class="post-detail-header_info-box">
     <div class="title-box">
       <span class="title">
-        Hello World
+        
       </span>
     </div>
     
     
       
         <span class="post-detail-header_date">
-          <i class="fas fa-calendar"></i> Published in：2025-04-14 |
+          <i class="fas fa-calendar"></i> Published in：2026-03-07 |
         </span>
       
 
@@ -450,19 +450,140 @@
   <div class="main-content">
     <article class="post post-detail">
       <div class="post-content">
-        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+        <blockquote>
+</blockquote>
+<h1 id="Fresco的缓存命中和使用策略"><a href="#Fresco的缓存命中和使用策略" class="headerlink" title="Fresco的缓存命中和使用策略"></a>Fresco的缓存命中和使用策略</h1><blockquote>
+<p>Fresco 的缓存机制围绕**「三级缓存（2 级内存 + 1 级磁盘）」**展开，所有的命中（查找缓存）和使用（写入 &#x2F; 淘汰 &#x2F; 复用缓存）都是基于这个层级，且查找有严格的优先级，<strong>写入有固定的回写规则</strong>，框架全程自动管理，无需手动干预。</p>
+</blockquote>
+<p>三级缓存的<strong>精准定义</strong></p>
+<table>
+<thead>
+<tr>
+<th>缓存层级</th>
+<th>全称</th>
+<th>存储内容</th>
+<th>存储区域</th>
+<th>生命周期</th>
+<th>核心作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>内存一级缓存（快存）</td>
+<td><strong>BitmapMemoryCache</strong></td>
+<td>解码后的 Bitmap</td>
+<td>Ashmem（匿名共享内存，<strong>不占 Java 堆</strong>）</td>
+<td>应用前台，主动淘汰</td>
+<td>最快复用，直接展示无需解码</td>
+</tr>
+<tr>
+<td>内存二级缓存（慢存）</td>
+<td><strong>EncodedMemoryCache</strong></td>
+<td>编码后的原数据（JPG&#x2F;PNG&#x2F;Gif 字节流）</td>
+<td>Java 堆（弱 &#x2F; 软引用）</td>
+<td>GC 优先回收，快存满后回收</td>
+<td>内存兜底，解码后同步到快存</td>
+</tr>
+<tr>
+<td>磁盘缓存</td>
+<td><strong>DiskCache（双分区）</strong></td>
+<td>未解码原数据（主）+ 解码后 Bitmap（辅）</td>
+<td>应用私有目录（无需存储权限）</td>
+<td>持久化，主动淘汰</td>
+<td>跨页面 &#x2F; 跨启动复用，网络兜底</td>
+</tr>
+</tbody></table>
+<p>关键补充：磁盘缓存是<strong>双分区设计</strong>——Fresco 默认优先缓存<strong>未解码的原数据</strong>（占空间小、通用性强），仅在特定场景缓存解码后的 Bitmap，这是为了<strong>平衡缓存命中率</strong>和<strong>磁盘空间占用</strong>。</p>
+<h2 id="一、Fresco-核心：缓存命中查找流程（从发起请求到找到缓存）"><a href="#一、Fresco-核心：缓存命中查找流程（从发起请求到找到缓存）" class="headerlink" title="一、Fresco 核心：缓存命中查找流程（从发起请求到找到缓存）"></a>一、Fresco 核心：缓存命中查找流程（从发起请求到找到缓存）</h2><p><strong>缓存命中</strong>：指加载图片时，Fresco 在某个缓存层级中找到对应的图片数据，无需向下一层级查找，更无需请求网络。</p>
+<p>Fresco 的查找流程是**「自上而下、优先级从高到低」**的严格顺序，<strong>任意层级命中则终止查找</strong>，直接使用该层级的数据；<strong>所有层级未命中则走网络加载</strong>。</p>
+<h3 id="1-完整的缓存命中查找流程（结合-ImagePipeline-工作机制）"><a href="#1-完整的缓存命中查找流程（结合-ImagePipeline-工作机制）" class="headerlink" title="1. 完整的缓存命中查找流程（结合 ImagePipeline 工作机制）"></a>1. 完整的缓存命中查找流程（结合 ImagePipeline 工作机制）</h3><p>当通过SimpleDraweeView设置 Uri 发起图片请求后，ImagePipeline 会执行以下步骤：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">发起图片请求 → 1. 检查【内存快存（BitmapMemoryCache）】→ 命中/未命中</span><br><span class="line">    ↓ 未命中</span><br><span class="line">2. 检查【内存慢存（EncodedMemoryCache）】→ 命中/未命中</span><br><span class="line">    ↓ 未命中</span><br><span class="line">3. 检查【磁盘缓存】→ 先查未解码原数据分区 → 再查已解码Bitmap分区 → 命中/未命中</span><br><span class="line">    ↓ 未命中</span><br><span class="line">4. 发起网络请求加载图片 → 加载成功/失败</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<h3 id="2-各层级命中后的处理逻辑（核心，决定后续怎么展示-复用）"><a href="#2-各层级命中后的处理逻辑（核心，决定后续怎么展示-复用）" class="headerlink" title="2. 各层级命中后的处理逻辑（核心，决定后续怎么展示 &#x2F; 复用）"></a>2. 各层级<strong>命中后的处理逻辑</strong>（核心，决定后续怎么展示 &#x2F; 复用）</h3><p>不同层级命中后，Fresco 的处理动作不同，目的是<strong>尽可能让后续请求能命中更高优先级的缓存</strong>：</p>
+<p><strong>内存快存命中</strong>：✅ 最优情况，直接将 Ashmem 中的 Bitmap 传递给 DraweeView 展示，<strong>无任何解码 &#x2F; IO 操作</strong>，加载速度最快；</p>
+<p><strong>内存慢存命中</strong>：将编码原数据<strong>在 Ashmem 中异步解码</strong>为 Bitmap → 展示图片 → <strong>同步将解码后的 Bitmap 写入内存快存</strong>（为下次请求做准备）；</p>
+<p><strong>磁盘缓存命中</strong>：</p>
+<p>若命中<strong>未解码原数据</strong>：将数据读入内存 → 异步解码为 Bitmap → 展示 → 同步写入<strong>内存快存 + 内存慢存</strong>；</p>
+<p>若命中<strong>已解码 Bitmap</strong>：直接将 Bitmap 写入内存快存 → 展示（比解码原数据更快）；</p>
+<h3 id="3-网络加载成功后的缓存回写规则（保证下次能命中）"><a href="#3-网络加载成功后的缓存回写规则（保证下次能命中）" class="headerlink" title="3. 网络加载成功后的缓存回写规则（保证下次能命中）"></a>3. 网络加载成功后的<strong>缓存回写规则</strong>（保证下次能命中）</h3><p>如果所有缓存都未命中，网络加载图片成功后，Fresco 会<strong>按「自下而上」的顺序回写缓存</strong>，完成缓存的初始化，让后续请求能直接复用：</p>
+<p><strong>网络加载原数据 → 解码为 Bitmap → 写入【内存快存】→ 写入【内存慢存】→ 写入【磁盘缓存（优先未解码原数据）】</strong></p>
+<h2 id="二、Fresco-缓存使用机制：写入-淘汰-复用（框架自动管理）"><a href="#二、Fresco-缓存使用机制：写入-淘汰-复用（框架自动管理）" class="headerlink" title="二、Fresco 缓存使用机制：写入 &#x2F; 淘汰 &#x2F; 复用（框架自动管理）"></a>二、Fresco 缓存<strong>使用机制</strong>：写入 &#x2F; 淘汰 &#x2F; 复用（框架自动管理）</h2><p>缓存的 “使用” 不只是 “查找和展示”，还包括<strong>写入规则</strong>、<strong>淘汰机制</strong>（缓存满了怎么清理）、<strong>复用策略</strong>，这是 Fresco 能自动维护缓存、不造成内存 &#x2F; 磁盘溢出的关键，所有操作均由 <strong>ImagePipeline</strong> 内部的<strong>缓存管理器</strong>自动执行，无需手动调用 API。</p>
+<h3 id="1-内存双缓存（快存-慢存）：基于LRU-算法的内存管理"><a href="#1-内存双缓存（快存-慢存）：基于LRU-算法的内存管理" class="headerlink" title="1. 内存双缓存（快存 + 慢存）：基于LRU 算法的内存管理"></a>1. 内存双缓存（快存 + 慢存）：基于<strong>LRU 算法</strong>的内存管理</h3><p>Fresco 对内存缓存的管理核心是<strong>LRU（最近最少使用）算法</strong>+<strong>Android 内存状态感知</strong>，简单说：<strong>缓存满了，优先淘汰最近最少被使用的缓存数据</strong>，同时会根据 App 的内存状态（前台 &#x2F; 后台 &#x2F; 低内存）动态调整缓存大小。</p>
+<p><strong>（1）内存快存（BitmapMemoryCache）的使用细节</strong></p>
+<p>写入：仅存储<strong>解码后的 Bitmap</strong>，且强制存储在<strong>Ashmem</strong>（匿名共享内存），<strong>不占用 App 的 Java 堆内存</strong>—— 这是 Fresco 解决 OOM 的核心！</p>
+<p>淘汰：① 按 LRU 淘汰，快存达到最大容量时，移除最久未使用的 Bitmap；② App 进入<strong>后台 &#x2F; 低内存状态</strong>时，Fresco 会<strong>主动回收部分快存</strong>，释放 Ashmem；③ 不会被 GC 主动回收（强引用缓存），只有框架主动淘汰才会释放。</p>
+<p>复用：Bitmap 一旦被加载，会被快存持有强引用，只要未被淘汰，任意页面请求相同图片都会直接命中，无需重复解码。</p>
+<p><strong>（2）内存慢存（EncodedMemoryCache）的使用细节</strong></p>
+<p>写入：仅存储<strong>编码后的原数据</strong>（字节流），占用内存极小（一张 1080P 的 JPG 约 100KB），存储在 Java 堆的<strong>弱引用 &#x2F; 软引用</strong>中；</p>
+<p>淘汰：① 优先级最低，<strong>GC 执行时会优先回收慢存</strong>；② 内存快存满了之后，会主动淘汰慢存的旧数据；③ 同样遵循 LRU 算法；</p>
+<p>作用：快存的 “兜底缓存”—— 如果快存的 Bitmap 被淘汰，慢存的原数据还在，只需解码一次就能恢复快存，比从磁盘加载更快。</p>
+<h3 id="2-磁盘缓存（DiskCache）：LRU-时间的双维度淘汰，双分区写入"><a href="#2-磁盘缓存（DiskCache）：LRU-时间的双维度淘汰，双分区写入" class="headerlink" title="2. 磁盘缓存（DiskCache）：LRU + 时间的双维度淘汰，双分区写入"></a>2. 磁盘缓存（DiskCache）：<strong>LRU + 时间</strong>的双维度淘汰，双分区写入</h3><p>Fresco 的磁盘缓存是<strong>持久化缓存</strong>（App 重启 &#x2F; 卸载前一直存在），默认存储在 App 的<strong>私有缓存目录</strong>（&#x2F;data&#x2F;data&#x2F;包名&#x2F;cache&#x2F;），<strong>无需申请存储权限</strong>，这是和 Glide&#x2F;Picasso 的一致设计，避免权限问题。</p>
+<p><strong>（1）双分区写入规则（核心设计）</strong></p>
+<p>磁盘缓存分为**「未解码缓存区（Main）」<strong>和</strong>「已解码缓存区（Small）」**，Fresco 的写入策略是：</p>
+<p><strong>优先写入未解码缓存区</strong>：网络 &#x2F; 内存加载的原数据，会默认写入这个分区，这是磁盘缓存的<strong>主分区</strong>（占 90% 以上磁盘缓存空间）；</p>
+<p><strong>按需写入已解码缓存区</strong>：仅当图片<strong>被频繁加载</strong>时，Fresco 才会将解码后的 Bitmap 写入这个分区（辅分区，空间小），目的是<strong>避免磁盘空间浪费</strong>（Bitmap 比原数据大 10-20 倍）。</p>
+<p>原因：原数据是 “通用的”—— 可以解码为任意尺寸的 Bitmap，而 Bitmap 是 “专用的”—— 仅适配某个SimpleDraweeView的尺寸，优先存原数据能提升缓存的<strong>通用性和命中率</strong>。</p>
+<p><strong>（2）淘汰机制（双维度，避免磁盘溢出）</strong></p>
+<p>当磁盘缓存达到<strong>最大容量</strong>（默认约 250MB）或<strong>数据过期</strong>时，Fresco 会在 **App 空闲时（如后台）**自动执行淘汰，规则是：</p>
+<p><strong>LRU 优先</strong>：移除最近最少使用的缓存数据（无论未解码 &#x2F; 已解码）；</p>
+<p><strong>时间兜底</strong>：移除<strong>超过 60 天未被使用</strong>的缓存数据（即使磁盘缓存没满）；</p>
+<p><strong>分区独立淘汰</strong>：未解码 &#x2F; 已解码分区各自遵循 LRU，互不影响。</p>
+<p><strong>（3）手动清理磁盘缓存（可选 API）</strong></p>
+<p>如果业务需要（如用户点击 “清理缓存”），可通过 Fresco 提供的 API 手动清理，无需自己操作文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// 清理所有磁盘缓存（未解码+已解码）</span><br><span class="line">Fresco.getImagePipeline().clearDiskCaches()// 清理所有内存缓存（快存+慢存）</span><br><span class="line">Fresco.getImagePipeline().clearMemoryCaches()// 清理所有缓存（内存+磁盘）</span><br><span class="line">Fresco.getImagePipeline().clearCaches()</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<h2 id="三、Fresco-缓存命中的核心关键：CacheKey（缓存键）"><a href="#三、Fresco-缓存命中的核心关键：CacheKey（缓存键）" class="headerlink" title="三、Fresco 缓存命中的核心关键：CacheKey（缓存键）"></a>三、Fresco 缓存命中的<strong>核心关键：CacheKey（缓存键）</strong></h2><p>所有的缓存命中 &#x2F; 写入 &#x2F; 淘汰，都是基于<strong>CacheKey（缓存键）实现的 ——Fresco 通过唯一的 CacheKey</strong>标识 “一张图片”，<strong>相同 CacheKey 视为同一张图，不同 CacheKey 视为不同图</strong>，这是理解缓存命中的<strong>底层规则</strong>，也是之前 Demo 中 “随机 CacheKey 实现强制刷新” 的原理。</p>
+<h3 id="1-默认-CacheKey-规则"><a href="#1-默认-CacheKey-规则" class="headerlink" title="1. 默认 CacheKey 规则"></a>1. 默认 CacheKey 规则</h3><p>Fresco<strong>默认使用图片的「Uri」作为 CacheKey</strong>，这是最常用的规则，比如：</p>
+<p>网络图片：<a target="_blank" rel="noopener" href="https://xxx.com/test.png">https://xxx.com/test.png</a> → 以这个 Uri 为 CacheKey；</p>
+<p>本地图片：res:&#x2F;&#x2F;&#x2F;${R.drawable.test}&#x2F;file:&#x2F;&#x2F;&#x2F;sdcard&#x2F;test.png → 以这个 Uri 为 CacheKey；</p>
+<p><strong>默认规则的命中效果</strong>：只要两次请求的<strong>Uri 完全一致</strong>，Fresco 就会认为是同一张图片，会按三级缓存流程查找命中；如果 Uri 不同，即使是同一张图片，也会视为新图，重新加载并生成新的 CacheKey。</p>
+<h3 id="2-自定义-CacheKey（解决特殊场景的命中问题）"><a href="#2-自定义-CacheKey（解决特殊场景的命中问题）" class="headerlink" title="2. 自定义 CacheKey（解决特殊场景的命中问题）"></a>2. 自定义 CacheKey（解决特殊场景的命中问题）</h3><p>有些场景下，<strong>相同 Uri 但实际是不同图片</strong>（比如带参数的图片：<a target="_blank" rel="noopener" href="https://xxx.com/avatar.png?uid=123/https://xxx.com/avatar.png?uid=456%EF%BC%89%EF%BC%8C%E5%A6%82%E6%9E%9C%E7%94%A8%E9%BB%98%E8%AE%A4">https://xxx.com/avatar.png?uid=123/https://xxx.com/avatar.png?uid=456），如果用默认</a> Uri 作为 CacheKey，会导致<strong>缓存命中错误</strong>（加载出其他用户的头像）。</p>
+<p>此时可以通过ImageRequestBuilder<strong>自定义 CacheKey</strong>，保证不同图片的 CacheKey 唯一：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// 自定义CacheKey：Uri+参数拼接，避免命中错误缓存val imgUri = Uri.parse(&quot;https://xxx.com/avatar.png?uid=123&quot;)val request = ImageRequestBuilder</span><br><span class="line">    .newBuilderWithSource(imgUri).setCacheKey(imgUri.toString() + &quot;_uid123&quot;) // 自定义唯一CacheKey.build()</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<h3 id="3-结合之前的强制刷新代码理解-CacheKey"><a href="#3-结合之前的强制刷新代码理解-CacheKey" class="headerlink" title="3. 结合之前的强制刷新代码理解 CacheKey"></a>3. 结合之前的<strong>强制刷新代码</strong>理解 CacheKey</h3><p>之前用setCacheKey(System.currentTimeMillis().toString())实现强制刷新，核心原理就是：</p>
+<p><strong>每次点击按钮，生成一个「唯一的随机 CacheKey（时间戳）」</strong>，Fresco 会认为这是一个<strong>从未加载过的新图片</strong>，因此会<strong>跳过所有缓存的查找</strong>（因为没有对应的 CacheKey），直接发起网络请求，从而实现和CachePolicy.IGNORE_CACHE完全一致的效果。</p>
+<h2 id="四、CachePolicy（缓存策略）：手动干预缓存命中流程"><a href="#四、CachePolicy（缓存策略）：手动干预缓存命中流程" class="headerlink" title="四、CachePolicy（缓存策略）：手动干预缓存命中流程"></a>四、CachePolicy（缓存策略）：手动干预<strong>缓存命中流程</strong></h2><p>之前学习的CachePolicy（DEFAULT&#x2F;IGNORE_CACHE&#x2F;ONLY_CACHE），本质是<strong>手动打破 Fresco 的默认命中流程</strong>，按业务需求控制 “是否查找缓存”“是否请求网络”，这是<strong>机制层面的灵活使用</strong>，也是开发中最常用的缓存控制方式。</p>
+<p>结合缓存命中流程，讲清楚每个策略的<strong>实际执行逻辑</strong>（小白易懂版）：</p>
+<h3 id="1-CachePolicy-DEFAULT（默认策略，无手动干预）"><a href="#1-CachePolicy-DEFAULT（默认策略，无手动干预）" class="headerlink" title="1. CachePolicy.DEFAULT（默认策略，无手动干预）"></a>1. CachePolicy.DEFAULT（默认策略，无手动干预）</h3><p>执行<strong>完整的三级缓存命中流程</strong>（内存快存→慢存→磁盘→网络）；</p>
+<p>任意层级命中则展示，所有层级未命中则走网络，加载成功后<strong>正常回写所有缓存</strong>；</p>
+<p>开发中 90% 的场景用这个策略，框架自动管理，无需手动设置。</p>
+<h3 id="2-CachePolicy-IGNORE-CACHE（忽略所有缓存，强制刷新）"><a href="#2-CachePolicy-IGNORE-CACHE（忽略所有缓存，强制刷新）" class="headerlink" title="2. CachePolicy.IGNORE_CACHE（忽略所有缓存，强制刷新）"></a>2. CachePolicy.IGNORE_CACHE（忽略所有缓存，强制刷新）</h3><p><strong>直接跳过所有三级缓存的查找</strong>，不检查任何缓存，<strong>直接发起网络请求</strong>；</p>
+<p>网络加载成功后，<strong>仍然会正常回写所有缓存</strong>（下次用 DEFAULT 策略可命中）；</p>
+<p>适用场景：用户手动刷新图片、图片实时更新（如验证码、头像修改后）。</p>
+<h3 id="3-CachePolicy-ONLY-CACHE（仅从缓存加载，不请求网络）"><a href="#3-CachePolicy-ONLY-CACHE（仅从缓存加载，不请求网络）" class="headerlink" title="3. CachePolicy.ONLY_CACHE（仅从缓存加载，不请求网络）"></a>3. CachePolicy.ONLY_CACHE（仅从缓存加载，不请求网络）</h3><p>执行<strong>完整的三级缓存命中流程</strong>，但<strong>任意层级未命中后，直接加载失败</strong>，<strong>不发起网络请求</strong>；</p>
+<p>无缓存回写（因为不会走网络）；</p>
+<p>适用场景：离线模式、无网络时的图片展示、仅展示本地缓存的内容。</p>
+<h2 id="五、一次完整的缓存命中-使用过程"><a href="#五、一次完整的缓存命中-使用过程" class="headerlink" title="五、一次完整的缓存命中 &#x2F; 使用过程"></a>五、一次完整的缓存命中 &#x2F; 使用过程</h2><p>用<strong>三次加载同一张网络图片</strong>的场景，串联所有机制，让你直观理解：</p>
+<p>场景：加载网络图片<a target="_blank" rel="noopener" href="https://xxx.com/test.png%EF%BC%8CSimpleDraweeView">https://xxx.com/test.png，SimpleDraweeView</a> 尺寸固定</p>
+<p><strong>第一次加载</strong>：</p>
+<p>所有缓存都无对应的 CacheKey，<strong>未命中</strong>，发起网络请求；</p>
+<p>网络加载成功后，<strong>回写缓存</strong>：解码 Bitmap→写入内存快存→写入内存慢存→将原数据写入磁盘未解码分区；</p>
+<p>展示图片，耗时：<strong>网络请求 + 解码 + 展示</strong>（最慢的一次）。</p>
+<p><strong>第二次加载（同页面 &#x2F; 新页面，未被淘汰）</strong>：</p>
+<p>查找<strong>内存快存</strong>，命中对应的 Bitmap，<strong>直接展示</strong>；</p>
+<p>无解码 &#x2F; IO &#x2F; 网络操作，耗时：<strong>0（几乎瞬间）</strong>（最优命中）。</p>
+<p><strong>第三次加载（App 后台后切回，快存被回收，慢存 &#x2F; 磁盘缓存还在）</strong>：</p>
+<p>查找内存快存，<strong>未命中</strong>；</p>
+<p>查找内存慢存，<strong>命中</strong>原数据，解码为 Bitmap→展示→同步回写内存快存；</p>
+<p>无网络 &#x2F; 磁盘 IO 操作，耗时：<strong>解码时间</strong>（比第一次快很多）。</p>
+<p><strong>第四次加载（App 重启，内存缓存清空，磁盘缓存还在）</strong>：</p>
+<p>查找内存快存 &#x2F; 慢存，<strong>未命中</strong>；</p>
+<p>查找磁盘缓存，命中原数据→读入内存→解码→展示→回写内存双缓存；</p>
+<p>无网络操作，耗时：<strong>磁盘 IO + 解码时间</strong>（比网络加载快）。</p>
+<p><strong>第五次加载（手动点击强制刷新，用 IGNORE_CACHE &#x2F; 随机 CacheKey）</strong>：</p>
+<p>跳过所有缓存查找，直接走网络→加载成功后回写缓存→展示；</p>
+<p>耗时和第一次一致，实现 “强制刷新”。</p>
+<h2 id="六、Fresco-缓存机制的核心设计亮点（为什么能极致优化-OOM-速度）"><a href="#六、Fresco-缓存机制的核心设计亮点（为什么能极致优化-OOM-速度）" class="headerlink" title="六、Fresco 缓存机制的核心设计亮点（为什么能极致优化 OOM &#x2F; 速度）"></a>六、Fresco 缓存机制的<strong>核心设计亮点</strong>（为什么能极致优化 OOM &#x2F; 速度）</h2><p><strong>Ashmem 存储解码后的 Bitmap</strong>：内存快存的 Bitmap 不占 Java 堆，彻底避免因 Bitmap 导致的 OOM，这是和 Glide&#x2F;Picasso 最核心的区别；</p>
+<p><strong>内存双缓存的 LRU + 内存感知</strong>：强引用快存保证速度，弱引用慢存做兜底，结合 App 内存状态动态淘汰，既保证命中率，又不浪费内存；</p>
+<p><strong>磁盘缓存的双分区设计</strong>：优先存原数据，提升缓存通用性和空间利用率，避免 Bitmap 占用过多磁盘空间；</p>
+<p><strong>CacheKey 的唯一标识</strong>：基于 Uri 的默认规则简单易用，自定义规则灵活适配特殊场景，从底层保证缓存命中的准确性；</p>
+<p><strong>自动的生命周期绑定</strong>：缓存的淘汰 &#x2F; 回收会和 App &#x2F; 页面生命周期联动（如后台回收内存缓存），无需手动管理，避免内存泄漏。</p>
+<h2 id="七、核心要点总结"><a href="#七、核心要点总结" class="headerlink" title="七、核心要点总结"></a>七、核心要点总结</h2><p>Fresco 的缓存命中是<strong>自上而下的严格优先级</strong>（内存快存→慢存→磁盘→网络），任意层级命中则终止查找，未命中则走网络并回写缓存；</p>
+<p>缓存使用的核心是<strong>自动的写入 &#x2F; 淘汰</strong>：内存缓存基于 LRU + 内存状态，磁盘缓存基于 LRU + 时间，均由框架管理，无需手动干预；</p>
+<p><strong>CacheKey 是缓存命中的底层核心</strong>，默认用 Uri，可自定义，相同 CacheKey 才会命中，这也是强制刷新、避免错误命中的关键；</p>
+<p>CachePolicy是<strong>手动干预命中流程</strong>的工具，通过它可实现 “强制刷新”“离线加载” 等业务需求，不改变底层的缓存机制；</p>
+<p>Fresco 解决 OOM 的核心是<strong>Ashmem 存储快存的 Bitmap</strong>，不占用 Java 堆，这是其缓存机制的最独特设计。</p>
+<p>理解这些机制后，你再回头看之前的 Demo 代码，就能明白 “为什么这么写”“缓存背后发生了什么”，后续遇到缓存相关的问题（如命中错误、刷新不生效），也能从<strong>CacheKey</strong>&#x2F;<strong>CachePolicy</strong>&#x2F;<strong>缓存淘汰</strong>三个角度快速定位问题。</p>
 
       </div>
       <div class="post-tags-categories">
@@ -476,7 +597,7 @@
     </li>
     <li class="post-copyright-link">
     <strong>link:  </strong>
-    <a href="/2025/04/14/hello-world/" target="_blank" title="Hello World">http://example.com/2025/04/14/hello-world/</a>
+    <a href="/2026/03/07/Fresco的缓存命中和使用策略/" target="_blank" title="">http://example.com/2026/03/07/Fresco的缓存命中和使用策略/</a>
     </li>
     <li class="post-copyright-license">
       <strong>Copyright notice:   </strong>
@@ -498,23 +619,38 @@
   <div class="post-nav-prev post-nav-item">
     <div class="post-nav-img" style="background-size: cover; 
       background-position: center center;">
-      <img class="lazyload lazyload placeholder" src="https://pic2.zhimg.com/80/v2-29e78b52051ce542adf6d786d61fbd19_1440w.webp" class="lazyload placeholder" data-srcset="https://pic2.zhimg.com/80/v2-29e78b52051ce542adf6d786d61fbd19_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+      <img class="lazyload lazyload placeholder" src="https://pic2.zhimg.com/80/v2-63bbdb5b76b8d349ad35ff4281efbd37_1440w.webp" class="lazyload placeholder" data-srcset="https://pic2.zhimg.com/80/v2-63bbdb5b76b8d349ad35ff4281efbd37_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
     </div>
-    <a href="/2025/04/15/hexo%E6%A1%86%E6%9E%B6-github%E5%88%9B%E5%BB%BA%E5%B1%9E%E4%BA%8E%E8%87%AA%E5%B7%B1%E7%9A%84%E5%8D%9A%E5%AE%A2/" class="post-nav-link">
+    <a href="/2026/03/07/%E5%A6%82%E4%BD%95%E5%9C%A8%E4%B8%80%E5%8F%B0%E7%94%B5%E8%84%91%E4%B8%8A%E8%AE%BE%E7%BD%AE%E5%A4%9A%E4%B8%AA%E7%94%A8%E4%BA%8E%E4%B8%8D%E5%90%8Cgit%E5%B9%B3%E5%8F%B0%E7%9A%84%E5%85%AC%E9%92%A5/" class="post-nav-link">
       <div class="title">
         <i class="fas fa-angle-left"></i> Prev:
-        <div class="title-text">hexo框架+github如何创建属于自己的博客</div>
+        <div class="title-text">如何在一台电脑上设置多个用于不同git平台的公钥</div>
       </div>
       
       <!-- <div class="content">
-        hexo框架+github创建属于自己的博客一、环境准备
-安装 Node.js
-前往 Node.js 官网下载并安装最新
+        如何在一台电脑上设置多个用于不同git平台的公钥一、背景当我在自己的本地电脑给github设置完公钥后，再想在gitla
       </div> -->
     </a>
   </div>
 
 
+
+  
+  <div class="post-nav-next post-nav-item">
+    <div class="post-nav-img" style="background-size: cover; 
+      background-position: center center;">
+      <img class="lazyload lazyload placeholder" src="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" class="lazyload placeholder" data-srcset="https://picx.zhimg.com/80/v2-85c31120acff76826ab53ea8934ef4bb_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" src="" alt="">
+    </div>
+    <a href="/2026/03/04/%E5%AF%B9%E7%85%A7%E7%BB%84%E8%B4%A6%E5%8F%B7%E5%88%87%E5%AE%9E%E9%AA%8C%E7%BB%84%E8%B4%A6%E5%8F%B7%E5%B4%A9%E6%BA%83%E9%97%AE%E9%A2%98%E5%A4%8D%E6%9F%A5/" class="post-nav-link">
+      <div class="title">
+        Next: <i class="fas fa-angle-right"></i>
+        <div class="title-text">对照组账号切实验组账号崩溃问题复查</div>
+      </div>
+      <!-- <div class="content">
+        在做新增图片tab需求的时候，需要按照规范，将tab对应的配置（即tabConfig）加上，然后创建该tab下的Frag
+      </div> -->
+    </a>
+  </div>
 
 </div>
 
@@ -733,7 +869,7 @@
   <div class='content'>
     <div class="toc-main">
       <div class="toc-content">
-        <!-- <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Quick-Start"><span class="toc-text">Quick Start</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Create-a-new-post"><span class="toc-text">Create a new post</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Run-server"><span class="toc-text">Run server</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Generate-static-files"><span class="toc-text">Generate static files</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Deploy-to-remote-sites"><span class="toc-text">Deploy to remote sites</span></a></li></ol></li></ol> -->
+        <!-- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Fresco%E7%9A%84%E7%BC%93%E5%AD%98%E5%91%BD%E4%B8%AD%E5%92%8C%E4%BD%BF%E7%94%A8%E7%AD%96%E7%95%A5"><span class="toc-text">Fresco的缓存命中和使用策略</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81Fresco-%E6%A0%B8%E5%BF%83%EF%BC%9A%E7%BC%93%E5%AD%98%E5%91%BD%E4%B8%AD%E6%9F%A5%E6%89%BE%E6%B5%81%E7%A8%8B%EF%BC%88%E4%BB%8E%E5%8F%91%E8%B5%B7%E8%AF%B7%E6%B1%82%E5%88%B0%E6%89%BE%E5%88%B0%E7%BC%93%E5%AD%98%EF%BC%89"><span class="toc-text">一、Fresco 核心：缓存命中查找流程（从发起请求到找到缓存）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%AE%8C%E6%95%B4%E7%9A%84%E7%BC%93%E5%AD%98%E5%91%BD%E4%B8%AD%E6%9F%A5%E6%89%BE%E6%B5%81%E7%A8%8B%EF%BC%88%E7%BB%93%E5%90%88-ImagePipeline-%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6%EF%BC%89"><span class="toc-text">1. 完整的缓存命中查找流程（结合 ImagePipeline 工作机制）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%90%84%E5%B1%82%E7%BA%A7%E5%91%BD%E4%B8%AD%E5%90%8E%E7%9A%84%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91%EF%BC%88%E6%A0%B8%E5%BF%83%EF%BC%8C%E5%86%B3%E5%AE%9A%E5%90%8E%E7%BB%AD%E6%80%8E%E4%B9%88%E5%B1%95%E7%A4%BA-%E5%A4%8D%E7%94%A8%EF%BC%89"><span class="toc-text">2. 各层级命中后的处理逻辑（核心，决定后续怎么展示 &#x2F; 复用）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%BD%91%E7%BB%9C%E5%8A%A0%E8%BD%BD%E6%88%90%E5%8A%9F%E5%90%8E%E7%9A%84%E7%BC%93%E5%AD%98%E5%9B%9E%E5%86%99%E8%A7%84%E5%88%99%EF%BC%88%E4%BF%9D%E8%AF%81%E4%B8%8B%E6%AC%A1%E8%83%BD%E5%91%BD%E4%B8%AD%EF%BC%89"><span class="toc-text">3. 网络加载成功后的缓存回写规则（保证下次能命中）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Fresco-%E7%BC%93%E5%AD%98%E4%BD%BF%E7%94%A8%E6%9C%BA%E5%88%B6%EF%BC%9A%E5%86%99%E5%85%A5-%E6%B7%98%E6%B1%B0-%E5%A4%8D%E7%94%A8%EF%BC%88%E6%A1%86%E6%9E%B6%E8%87%AA%E5%8A%A8%E7%AE%A1%E7%90%86%EF%BC%89"><span class="toc-text">二、Fresco 缓存使用机制：写入 &#x2F; 淘汰 &#x2F; 复用（框架自动管理）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%86%85%E5%AD%98%E5%8F%8C%E7%BC%93%E5%AD%98%EF%BC%88%E5%BF%AB%E5%AD%98-%E6%85%A2%E5%AD%98%EF%BC%89%EF%BC%9A%E5%9F%BA%E4%BA%8ELRU-%E7%AE%97%E6%B3%95%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="toc-text">1. 内存双缓存（快存 + 慢存）：基于LRU 算法的内存管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%A3%81%E7%9B%98%E7%BC%93%E5%AD%98%EF%BC%88DiskCache%EF%BC%89%EF%BC%9ALRU-%E6%97%B6%E9%97%B4%E7%9A%84%E5%8F%8C%E7%BB%B4%E5%BA%A6%E6%B7%98%E6%B1%B0%EF%BC%8C%E5%8F%8C%E5%88%86%E5%8C%BA%E5%86%99%E5%85%A5"><span class="toc-text">2. 磁盘缓存（DiskCache）：LRU + 时间的双维度淘汰，双分区写入</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81Fresco-%E7%BC%93%E5%AD%98%E5%91%BD%E4%B8%AD%E7%9A%84%E6%A0%B8%E5%BF%83%E5%85%B3%E9%94%AE%EF%BC%9ACacheKey%EF%BC%88%E7%BC%93%E5%AD%98%E9%94%AE%EF%BC%89"><span class="toc-text">三、Fresco 缓存命中的核心关键：CacheKey（缓存键）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E9%BB%98%E8%AE%A4-CacheKey-%E8%A7%84%E5%88%99"><span class="toc-text">1. 默认 CacheKey 规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E8%87%AA%E5%AE%9A%E4%B9%89-CacheKey%EF%BC%88%E8%A7%A3%E5%86%B3%E7%89%B9%E6%AE%8A%E5%9C%BA%E6%99%AF%E7%9A%84%E5%91%BD%E4%B8%AD%E9%97%AE%E9%A2%98%EF%BC%89"><span class="toc-text">2. 自定义 CacheKey（解决特殊场景的命中问题）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%BB%93%E5%90%88%E4%B9%8B%E5%89%8D%E7%9A%84%E5%BC%BA%E5%88%B6%E5%88%B7%E6%96%B0%E4%BB%A3%E7%A0%81%E7%90%86%E8%A7%A3-CacheKey"><span class="toc-text">3. 结合之前的强制刷新代码理解 CacheKey</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81CachePolicy%EF%BC%88%E7%BC%93%E5%AD%98%E7%AD%96%E7%95%A5%EF%BC%89%EF%BC%9A%E6%89%8B%E5%8A%A8%E5%B9%B2%E9%A2%84%E7%BC%93%E5%AD%98%E5%91%BD%E4%B8%AD%E6%B5%81%E7%A8%8B"><span class="toc-text">四、CachePolicy（缓存策略）：手动干预缓存命中流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-CachePolicy-DEFAULT%EF%BC%88%E9%BB%98%E8%AE%A4%E7%AD%96%E7%95%A5%EF%BC%8C%E6%97%A0%E6%89%8B%E5%8A%A8%E5%B9%B2%E9%A2%84%EF%BC%89"><span class="toc-text">1. CachePolicy.DEFAULT（默认策略，无手动干预）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-CachePolicy-IGNORE-CACHE%EF%BC%88%E5%BF%BD%E7%95%A5%E6%89%80%E6%9C%89%E7%BC%93%E5%AD%98%EF%BC%8C%E5%BC%BA%E5%88%B6%E5%88%B7%E6%96%B0%EF%BC%89"><span class="toc-text">2. CachePolicy.IGNORE_CACHE（忽略所有缓存，强制刷新）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-CachePolicy-ONLY-CACHE%EF%BC%88%E4%BB%85%E4%BB%8E%E7%BC%93%E5%AD%98%E5%8A%A0%E8%BD%BD%EF%BC%8C%E4%B8%8D%E8%AF%B7%E6%B1%82%E7%BD%91%E7%BB%9C%EF%BC%89"><span class="toc-text">3. CachePolicy.ONLY_CACHE（仅从缓存加载，不请求网络）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E4%B8%80%E6%AC%A1%E5%AE%8C%E6%95%B4%E7%9A%84%E7%BC%93%E5%AD%98%E5%91%BD%E4%B8%AD-%E4%BD%BF%E7%94%A8%E8%BF%87%E7%A8%8B"><span class="toc-text">五、一次完整的缓存命中 &#x2F; 使用过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81Fresco-%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6%E7%9A%84%E6%A0%B8%E5%BF%83%E8%AE%BE%E8%AE%A1%E4%BA%AE%E7%82%B9%EF%BC%88%E4%B8%BA%E4%BB%80%E4%B9%88%E8%83%BD%E6%9E%81%E8%87%B4%E4%BC%98%E5%8C%96-OOM-%E9%80%9F%E5%BA%A6%EF%BC%89"><span class="toc-text">六、Fresco 缓存机制的核心设计亮点（为什么能极致优化 OOM &#x2F; 速度）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9%E6%80%BB%E7%BB%93"><span class="toc-text">七、核心要点总结</span></a></li></ol></li></ol> -->
         <div class="toc"></div>
       </div>
     </div>

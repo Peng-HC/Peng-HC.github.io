@@ -11,7 +11,7 @@
   <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-  <title>Hello World | Penghc_Blog</title>
+  <title>如何在一台电脑上设置多个用于不同git平台的公钥 | Penghc_Blog</title>
 
   <link rel="icon" type="image/x-icon, image/vnd.microsoft.icon" href="/favicon.ico">
   <link rel="stylesheet" href="https://at.alicdn.com/t/font_1911880_c1nvbyezg17.css">
@@ -412,21 +412,21 @@
 
 
 <div class="post-detail-header" id="thumbnail_canvas" style="background-repeat: no-repeat; background-size: cover; 
-  background-position: center center;position: relative;background-image:url('https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp')">
+  background-position: center center;position: relative;background-image:url('https://pic2.zhimg.com/80/v2-63bbdb5b76b8d349ad35ff4281efbd37_1440w.webp')">
   <div class="post-detail-header-mask"></div>
   <canvas id="header_canvas"style="position:absolute;bottom:0;pointer-events:none;"></canvas>
   
   <div class="post-detail-header_info-box">
     <div class="title-box">
       <span class="title">
-        Hello World
+        如何在一台电脑上设置多个用于不同git平台的公钥
       </span>
     </div>
     
     
       
         <span class="post-detail-header_date">
-          <i class="fas fa-calendar"></i> Published in：2025-04-14 |
+          <i class="fas fa-calendar"></i> Published in：2026-03-07 |
         </span>
       
 
@@ -450,22 +450,70 @@
   <div class="main-content">
     <article class="post post-detail">
       <div class="post-content">
-        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+        <h1 id="如何在一台电脑上设置多个用于不同git平台的公钥"><a href="#如何在一台电脑上设置多个用于不同git平台的公钥" class="headerlink" title="如何在一台电脑上设置多个用于不同git平台的公钥"></a>如何在一台电脑上设置多个用于不同git平台的公钥</h1><h2 id="一、背景"><a href="#一、背景" class="headerlink" title="一、背景"></a>一、背景</h2><p>当我在自己的本地电脑给github设置完公钥后，再想在gitlab上推送&#x2F;拉取代码时，发现：</p>
+<p><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/1600-20260307003422837.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/1600-20260307003422837.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="img"></p>
+<p>所以我希望能够在一台mac上同时拥有两个平台的密钥，推送&#x2F;拉取代码时能够分别在不同平台上操作</p>
+<h2 id="二、步骤"><a href="#二、步骤" class="headerlink" title="二、步骤"></a>二、步骤</h2><p>核心原理：Mac的SSH客户端支持通过 <em><strong>*~&#x2F;.ssh&#x2F;config*</strong></em> 配置文件，<em><strong>*为不同的git服务器（eg：github.com&#x2F;gitlab.com）绑定专属的密钥文件*</strong></em>，当你访问对应服务器时，SSH 会自动选择匹配的密钥，无需每次手动指定。</p>
+<h3 id="步骤-1：为-GitHub-和-GitLab-分别生成独立密钥"><a href="#步骤-1：为-GitHub-和-GitLab-分别生成独立密钥" class="headerlink" title="步骤 1：为 GitHub 和 GitLab 分别生成独立密钥"></a>步骤 1：为 GitHub 和 GitLab 分别生成独立密钥</h3><p>先为两个平台生成****命名不同的密钥对****（避免覆盖默认密钥），打开 Mac 的「终端」（Terminal）执行：</p>
+<h4 id="1-生成-GitHub-专用密钥"><a href="#1-生成-GitHub-专用密钥" class="headerlink" title="1. 生成 GitHub 专用密钥"></a>1. 生成 GitHub 专用密钥</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 替换为你的GitHub注册邮箱，密钥文件命名为id_ed25519_github</span><br><span class="line">ssh-keygen -t ed25519 -C &quot;你的GitHub邮箱@example.com&quot; -f ~/.ssh/id_ed25519_github</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<h4 id="2-生成-GitLab-专用密钥"><a href="#2-生成-GitLab-专用密钥" class="headerlink" title="2. 生成 GitLab 专用密钥"></a>2. 生成 GitLab 专用密钥</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 替换为你的GitLab注册邮箱，密钥文件命名为id_ed25519_gitlab</span><br><span class="line">ssh-keygen -t ed25519 -C &quot;你的GitLab邮箱@example.com&quot; -f ~/.ssh/id_ed25519_gitlab</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>执行每个命令后会出现提示：</p>
+<p>Enter passphrase (empty for no passphrase): → 可选：设置密钥密码（更安全，每次用 SSH 时需输入），也可直接回车跳过；</p>
+<p>Enter same passphrase again: → 若设了密码则重复输入，否则回车。</p>
+<p><img src="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/1600.png" class="lazyload placeholder" data-srcset="/../pictures/Android%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%B8%80%EF%BC%89/1600.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="img"></p>
+<p>生成完成后，~&#x2F;.ssh目录下会出现 4 个文件：</p>
+<p>id_ed25519_github（GitHub 私钥）、id_ed25519_github.pub（GitHub 公钥）；</p>
+<p>id_ed25519_gitlab（GitLab 私钥）、id_ed25519_gitlab.pub（GitLab 公钥）。</p>
+<p><img src="https://xhs-doc.xhscdn.com/1040025031sbv1qophk0739otss?imageView2/2/w/1600" class="lazyload placeholder" data-srcset="https://xhs-doc.xhscdn.com/1040025031sbv1qophk0739otss?imageView2/2/w/1600" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="img"></p>
+<h3 id="步骤-2：创建-编辑-SSH-Config-文件（核心：自动匹配密钥）"><a href="#步骤-2：创建-编辑-SSH-Config-文件（核心：自动匹配密钥）" class="headerlink" title="步骤 2：创建 &#x2F; 编辑 SSH Config 文件（核心：自动匹配密钥）"></a>步骤 2：创建 &#x2F; 编辑 SSH Config 文件（核心：自动匹配密钥）</h3><p>这是实现 “不同平台用不同密钥” 的关键，Mac 的 SSH 会通过这个配置文件识别服务器并选择对应密钥。</p>
+<h4 id="1-打开-Config-文件（没有则创建）"><a href="#1-打开-Config-文件（没有则创建）" class="headerlink" title="1. 打开 Config 文件（没有则创建）"></a>1. 打开 Config 文件（没有则创建）</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 用文本编辑器打开~/.ssh/config，不存在则自动创建</span><br><span class="line">open ~/.ssh/config</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<h4 id="2-粘贴以下配置内容（直接复制，替换注释里的路径）"><a href="#2-粘贴以下配置内容（直接复制，替换注释里的路径）" class="headerlink" title="2. 粘贴以下配置内容（直接复制，替换注释里的路径）"></a>2. 粘贴以下配置内容（直接复制，替换注释里的路径）</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># GitHub 配置</span><br><span class="line">Host github.com</span><br><span class="line">  HostName github.com</span><br><span class="line">  User git</span><br><span class="line">  IdentityFile ~/.ssh/id_ed25519_github  # 指向GitHub专用私钥</span><br><span class="line">  IdentitiesOnly yes  # 强制使用指定的密钥，不尝试其他密钥</span><br><span class="line"> </span><br><span class="line"># GitLab 配置</span><br><span class="line">Host gitlab.com</span><br><span class="line">  HostName gitlab.com</span><br><span class="line">  User git</span><br><span class="line">  IdentityFile ~/.ssh/id_ed25519_gitlab  # 指向GitLab专用私钥</span><br><span class="line">  IdentitiesOnly yes</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<h4 id="3-设置-Config-文件的正确权限（Mac-安全要求）"><a href="#3-设置-Config-文件的正确权限（Mac-安全要求）" class="headerlink" title="3. 设置 Config 文件的正确权限（Mac 安全要求）"></a>3. 设置 Config 文件的正确权限（Mac 安全要求）</h4><p>SSH 对配置文件权限要求严格，执行以下命令确保权限正确（否则会失效）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">chmod 600 ~/.ssh/config  # Config文件权限设为600（仅自己可读可写）</span><br><span class="line">chmod 400 ~/.ssh/id_ed25519_github  # 私钥权限设为400（仅自己可读）</span><br><span class="line">chmod 400 ~/.ssh/id_ed25519_gitlab</span><br></pre></td></tr></table></figure>
+
+<h3 id="步骤-3：将对应公钥上传到-GitHub-GitLab"><a href="#步骤-3：将对应公钥上传到-GitHub-GitLab" class="headerlink" title="步骤 3：将对应公钥上传到 GitHub&#x2F;GitLab"></a>步骤 3：将对应公钥上传到 GitHub&#x2F;GitLab</h3><p>分别复制 GitHub 和 GitLab 的公钥内容，上传到对应平台的 SSH 设置里。</p>
+<h4 id="1-复制-GitHub-公钥（Mac-一键复制）"><a href="#1-复制-GitHub-公钥（Mac-一键复制）" class="headerlink" title="1. 复制 GitHub 公钥（Mac 一键复制）"></a>1. 复制 GitHub 公钥（Mac 一键复制）</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat &lt; ~/.ssh/id_ed25519_github.pub</span><br></pre></td></tr></table></figure>
+
+<p>登录 GitHub → 右上角头像 → Settings → SSH and GPG keys → New SSH key；</p>
+<p>Title：填备注（如 “Mac - GitHub”）；</p>
+<p>Key：粘贴复制的公钥内容 → 点击Add SSH key。</p>
+<h4 id="2-复制-GitLab-公钥（Mac-一键复制）"><a href="#2-复制-GitLab-公钥（Mac-一键复制）" class="headerlink" title="2. 复制 GitLab 公钥（Mac 一键复制）"></a>2. 复制 GitLab 公钥（Mac 一键复制）</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat &lt; ~/.ssh/id_ed25519_gitlab.pub</span><br></pre></td></tr></table></figure>
+
+<p>登录 GitLab → 右上角头像 → Preferences → SSH Keys；</p>
+<p>Title：填备注（如 “Mac - GitLab”）；</p>
+<p>Key：粘贴复制的公钥内容 → 点击Add key。</p>
+<h3 id="步骤-4：测试-SSH-连接（验证配置是否生效）"><a href="#步骤-4：测试-SSH-连接（验证配置是否生效）" class="headerlink" title="步骤 4：测试 SSH 连接（验证配置是否生效）"></a>步骤 4：测试 SSH 连接（验证配置是否生效）</h3><p>分别测试 GitHub 和 GitLab 的 SSH 连接，确认密钥匹配成功。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 测试 GitHub 连接</span><br><span class="line">ssh -T git@github.com</span><br><span class="line"> </span><br><span class="line"># 测试 GitLab 连接</span><br><span class="line">ssh -T git@gitlab.com</span><br></pre></td></tr></table></figure>
+
+<p>若输出 Hi 你的GitHub&#x2F;GitLab用户名! You’ve successfully authenticated…，说明 GitHub&#x2F;GitLab 密钥配置成功。</p>
+<h2 id="三、Q-A"><a href="#三、Q-A" class="headerlink" title="三、Q &amp; A"></a>三、Q &amp; A</h2><p>Q：有的同学可能会遇到这个问题：github连接成功了，但是好像gitlab连接失败了，更“诡异”的是gitlab&#x2F;github都可以正常pull&#x2F;push等操作</p>
+<p>A：</p>
+<p>ssh -T 测试的是「全局 GitLab 服务器的用户级认证」，而 push&#x2F;pull 正常说明「针对具体仓库的权限认证是有效的」—— 两者的认证逻辑、依赖的密钥 &#x2F; 权限范围不同，并非真的 “连接失败”。</p>
+<p>具体可以查看一下实际的仓库类型，是否是私有仓库</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 查看仓库的远程地址（确认是 gitlab.com 还是私有 GitLab）</span><br><span class="line">git remote -v</span><br></pre></td></tr></table></figure>
+
+<p>输出示例 1（公共 gitlab.com 仓库）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">origin  git@gitlab.com:你的用户名/你的仓库.git (fetch)</span><br><span class="line">origin  git@gitlab.com:你的用户名/你的仓库.git (push)</span><br></pre></td></tr></table></figure>
+
+<p>输出示例 2（私有 GitLab 实例 &#x2F; Deploy Key 授权）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">origin  git@gitlab.company.com:部门/你的仓库.git (fetch)</span><br><span class="line">origin  git@gitlab.company.com:部门/你的仓库.git (push)</span><br></pre></td></tr></table></figure>
+
+<p>如果是示例 2，说明你测试的 gitlab.com 和实际操作的 gitlab.company.com 是两个不同的服务器，密钥自然不匹配。</p>
 
       </div>
       <div class="post-tags-categories">
+        
+        <div class="tags">
+          
+            <a href="/tags/git/" class="">
+              git
+            </a>
+          
+        </div>
         
       </div>
       
@@ -476,7 +524,7 @@
     </li>
     <li class="post-copyright-link">
     <strong>link:  </strong>
-    <a href="/2025/04/14/hello-world/" target="_blank" title="Hello World">http://example.com/2025/04/14/hello-world/</a>
+    <a href="/2026/03/07/如何在一台电脑上设置多个用于不同git平台的公钥/" target="_blank" title="如何在一台电脑上设置多个用于不同git平台的公钥">http://example.com/2026/03/07/如何在一台电脑上设置多个用于不同git平台的公钥/</a>
     </li>
     <li class="post-copyright-license">
       <strong>Copyright notice:   </strong>
@@ -498,23 +546,42 @@
   <div class="post-nav-prev post-nav-item">
     <div class="post-nav-img" style="background-size: cover; 
       background-position: center center;">
-      <img class="lazyload lazyload placeholder" src="https://pic2.zhimg.com/80/v2-29e78b52051ce542adf6d786d61fbd19_1440w.webp" class="lazyload placeholder" data-srcset="https://pic2.zhimg.com/80/v2-29e78b52051ce542adf6d786d61fbd19_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+      <img class="lazyload lazyload placeholder" src="https://pic1.zhimg.com/80/v2-03a22891ccba9bccf6424dfd7cbf4be7_1440w.webp" class="lazyload placeholder" data-srcset="https://pic1.zhimg.com/80/v2-03a22891ccba9bccf6424dfd7cbf4be7_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
     </div>
-    <a href="/2025/04/15/hexo%E6%A1%86%E6%9E%B6-github%E5%88%9B%E5%BB%BA%E5%B1%9E%E4%BA%8E%E8%87%AA%E5%B7%B1%E7%9A%84%E5%8D%9A%E5%AE%A2/" class="post-nav-link">
+    <a href="/2026/03/07/%E5%A6%82%E4%BD%95%E5%81%9A%E4%B8%80%E5%8F%B0%E4%B8%93%E5%B1%9E%E7%9A%84%E2%80%9C%E8%B1%86%E5%8C%85%E2%80%9D%E6%89%8B%E6%9C%BA/" class="post-nav-link">
       <div class="title">
         <i class="fas fa-angle-left"></i> Prev:
-        <div class="title-text">hexo框架+github如何创建属于自己的博客</div>
+        <div class="title-text">如何做一台专属的“豆包”手机</div>
       </div>
       
       <!-- <div class="content">
-        hexo框架+github创建属于自己的博客一、环境准备
-安装 Node.js
-前往 Node.js 官网下载并安装最新
+        如何做一台专属的“豆包”手机一、核心前提
+手机要求：Android 7.0+ 真机 &#x2F; 模拟器，需开启开发者模
       </div> -->
     </a>
   </div>
 
 
+
+  
+  <div class="post-nav-next post-nav-item">
+    <div class="post-nav-img" style="background-size: cover; 
+      background-position: center center;">
+      <img class="lazyload lazyload placeholder" src="https://pic1.zhimg.com/80/v2-03a22891ccba9bccf6424dfd7cbf4be7_1440w.webp" class="lazyload placeholder" data-srcset="https://pic1.zhimg.com/80/v2-03a22891ccba9bccf6424dfd7cbf4be7_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" src="" alt="">
+    </div>
+    <a href="/2026/03/07/Fresco%E7%9A%84%E7%BC%93%E5%AD%98%E5%91%BD%E4%B8%AD%E5%92%8C%E4%BD%BF%E7%94%A8%E7%AD%96%E7%95%A5/" class="post-nav-link">
+      <div class="title">
+        Next: <i class="fas fa-angle-right"></i>
+        <div class="title-text"></div>
+      </div>
+      <!-- <div class="content">
+        
+
+Fresco的缓存命中和使用策略
+Fresco 的缓存机制围绕**「三级缓存（2 级内存 + 1 级磁盘）」**展开
+      </div> -->
+    </a>
+  </div>
 
 </div>
 
@@ -733,7 +800,7 @@
   <div class='content'>
     <div class="toc-main">
       <div class="toc-content">
-        <!-- <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Quick-Start"><span class="toc-text">Quick Start</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Create-a-new-post"><span class="toc-text">Create a new post</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Run-server"><span class="toc-text">Run server</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Generate-static-files"><span class="toc-text">Generate static files</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Deploy-to-remote-sites"><span class="toc-text">Deploy to remote sites</span></a></li></ol></li></ol> -->
+        <!-- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E5%9C%A8%E4%B8%80%E5%8F%B0%E7%94%B5%E8%84%91%E4%B8%8A%E8%AE%BE%E7%BD%AE%E5%A4%9A%E4%B8%AA%E7%94%A8%E4%BA%8E%E4%B8%8D%E5%90%8Cgit%E5%B9%B3%E5%8F%B0%E7%9A%84%E5%85%AC%E9%92%A5"><span class="toc-text">如何在一台电脑上设置多个用于不同git平台的公钥</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%83%8C%E6%99%AF"><span class="toc-text">一、背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%AD%A5%E9%AA%A4"><span class="toc-text">二、步骤</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4-1%EF%BC%9A%E4%B8%BA-GitHub-%E5%92%8C-GitLab-%E5%88%86%E5%88%AB%E7%94%9F%E6%88%90%E7%8B%AC%E7%AB%8B%E5%AF%86%E9%92%A5"><span class="toc-text">步骤 1：为 GitHub 和 GitLab 分别生成独立密钥</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%94%9F%E6%88%90-GitHub-%E4%B8%93%E7%94%A8%E5%AF%86%E9%92%A5"><span class="toc-text">1. 生成 GitHub 专用密钥</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E7%94%9F%E6%88%90-GitLab-%E4%B8%93%E7%94%A8%E5%AF%86%E9%92%A5"><span class="toc-text">2. 生成 GitLab 专用密钥</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4-2%EF%BC%9A%E5%88%9B%E5%BB%BA-%E7%BC%96%E8%BE%91-SSH-Config-%E6%96%87%E4%BB%B6%EF%BC%88%E6%A0%B8%E5%BF%83%EF%BC%9A%E8%87%AA%E5%8A%A8%E5%8C%B9%E9%85%8D%E5%AF%86%E9%92%A5%EF%BC%89"><span class="toc-text">步骤 2：创建 &#x2F; 编辑 SSH Config 文件（核心：自动匹配密钥）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E6%89%93%E5%BC%80-Config-%E6%96%87%E4%BB%B6%EF%BC%88%E6%B2%A1%E6%9C%89%E5%88%99%E5%88%9B%E5%BB%BA%EF%BC%89"><span class="toc-text">1. 打开 Config 文件（没有则创建）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E7%B2%98%E8%B4%B4%E4%BB%A5%E4%B8%8B%E9%85%8D%E7%BD%AE%E5%86%85%E5%AE%B9%EF%BC%88%E7%9B%B4%E6%8E%A5%E5%A4%8D%E5%88%B6%EF%BC%8C%E6%9B%BF%E6%8D%A2%E6%B3%A8%E9%87%8A%E9%87%8C%E7%9A%84%E8%B7%AF%E5%BE%84%EF%BC%89"><span class="toc-text">2. 粘贴以下配置内容（直接复制，替换注释里的路径）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E8%AE%BE%E7%BD%AE-Config-%E6%96%87%E4%BB%B6%E7%9A%84%E6%AD%A3%E7%A1%AE%E6%9D%83%E9%99%90%EF%BC%88Mac-%E5%AE%89%E5%85%A8%E8%A6%81%E6%B1%82%EF%BC%89"><span class="toc-text">3. 设置 Config 文件的正确权限（Mac 安全要求）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4-3%EF%BC%9A%E5%B0%86%E5%AF%B9%E5%BA%94%E5%85%AC%E9%92%A5%E4%B8%8A%E4%BC%A0%E5%88%B0-GitHub-GitLab"><span class="toc-text">步骤 3：将对应公钥上传到 GitHub&#x2F;GitLab</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E5%A4%8D%E5%88%B6-GitHub-%E5%85%AC%E9%92%A5%EF%BC%88Mac-%E4%B8%80%E9%94%AE%E5%A4%8D%E5%88%B6%EF%BC%89"><span class="toc-text">1. 复制 GitHub 公钥（Mac 一键复制）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E5%A4%8D%E5%88%B6-GitLab-%E5%85%AC%E9%92%A5%EF%BC%88Mac-%E4%B8%80%E9%94%AE%E5%A4%8D%E5%88%B6%EF%BC%89"><span class="toc-text">2. 复制 GitLab 公钥（Mac 一键复制）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4-4%EF%BC%9A%E6%B5%8B%E8%AF%95-SSH-%E8%BF%9E%E6%8E%A5%EF%BC%88%E9%AA%8C%E8%AF%81%E9%85%8D%E7%BD%AE%E6%98%AF%E5%90%A6%E7%94%9F%E6%95%88%EF%BC%89"><span class="toc-text">步骤 4：测试 SSH 连接（验证配置是否生效）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81Q-A"><span class="toc-text">三、Q &amp; A</span></a></li></ol></li></ol> -->
         <div class="toc"></div>
       </div>
     </div>
